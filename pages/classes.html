@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการชั้นเรียน — ClassTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="../assets/css/main.css" rel="stylesheet" />
+</head>
+<body>
+<nav id="sidebar">
+  <div class="sidebar-brand"><span class="brand-icon">📚</span><span class="brand-name">Class<b>Track</b></span></div>
+  <div class="sidebar-user"><div class="user-avatar" id="user-avatar">ค</div><div><div class="user-name" id="user-name">กำลังโหลด...</div><div class="user-role" id="user-role"></div></div></div>
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html" data-page="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+    <li><a href="assignments.html" data-page="assignments"><i class="bi bi-journal-plus"></i> มอบหมายงาน</a></li>
+    <li><a href="checkwork.html" data-page="checkwork"><i class="bi bi-calendar-check"></i> ตรวจงาน</a></li>
+    <li><a href="students.html" data-page="students"><i class="bi bi-people"></i> จัดการนักเรียน</a></li>
+    <li><a href="reports.html" data-page="reports"><i class="bi bi-bar-chart-line"></i> รายงานผล</a></li>
+    <li class="admin-only"><a href="classes.html" data-page="classes"><i class="bi bi-building"></i> จัดการชั้นเรียน</a></li>
+    <li class="admin-only"><a href="settings.html" data-page="settings"><i class="bi bi-gear"></i> ตั้งค่าระบบ</a></li>
+  </ul>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="Auth.logout()"><i class="bi bi-box-arrow-left"></i> ออกจากระบบ</button></div>
+</nav>
+<header id="topbar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+  <span class="topbar-title">ชั้นเรียน</span><span></span>
+</header>
+
+<main id="main-content">
+  <div class="page-header">
+    <div>
+      <div class="page-title">จัดการชั้นเรียน <span>Classes</span></div>
+      <div class="page-sub">เพิ่มและแก้ไขห้องเรียน (เฉพาะ Admin)</div>
+    </div>
+    <button class="btn-primary-ct" onclick="openModal()"><i class="bi bi-plus-lg"></i> เพิ่มชั้นเรียน</button>
+  </div>
+
+  <div class="card">
+    <div class="card-body-ct" id="class-table-wrap">
+      <div class="d-flex justify-content-center py-5"><div class="spinner"></div></div>
+    </div>
+  </div>
+</main>
+
+<!-- Class Modal -->
+<div class="modal fade" id="classModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:18px;border:none">
+      <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border)">
+        <h5 class="modal-title" id="class-modal-title" style="font-family:'Chakra Petch',sans-serif;font-weight:600">เพิ่มชั้นเรียน</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:24px">
+        <input type="hidden" id="edit-class-id" />
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">ชื่อห้องเรียน <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="inp-class-name" placeholder="เช่น ป.6/1" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">ระดับชั้น</label>
+            <select class="form-select" id="inp-class-level">
+              <option value="ป.1">ป.1</option><option value="ป.2">ป.2</option>
+              <option value="ป.3">ป.3</option><option value="ป.4">ป.4</option>
+              <option value="ป.5">ป.5</option><option value="ป.6">ป.6</option>
+              <option value="ม.1">ม.1</option><option value="ม.2">ม.2</option>
+              <option value="ม.3">ม.3</option><option value="ม.4">ม.4</option>
+              <option value="ม.5">ม.5</option><option value="ม.6">ม.6</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">ห้อง</label>
+            <input type="text" class="form-control" id="inp-class-room" placeholder="เช่น 1" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">สถานะ</label>
+            <select class="form-select" id="inp-class-active">
+              <option value="TRUE">เปิดใช้งาน</option>
+              <option value="FALSE">ปิดใช้งาน</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);gap:10px">
+        <button class="btn-outline-ct" data-bs-dismiss="modal">ยกเลิก</button>
+        <button class="btn-primary-ct" onclick="saveClass()"><i class="bi bi-save"></i> บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="global-loading" style="display:none;position:fixed;inset:0;z-index:8888;background:rgba(255,255,255,0.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div class="spinner"></div><div id="loading-text" style="font-size:15px;color:#64748b">กำลังโหลด...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script>
+  const user = Auth.requireRole('ADMIN');
+  if (user) {
+    UI.renderUserInfo();
+    const av = document.getElementById('user-avatar');
+    if (av && user.name) av.textContent = user.name.charAt(0);
+    document.querySelector('[data-page="classes"]').classList.add('active');
+    loadClasses();
+  }
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  async function loadClasses() {
+    try {
+      const res = await Api.Classes.list();
+      renderTable(res.data || []);
+    } catch(e) {
+      document.getElementById('class-table-wrap').innerHTML = '<div class="alert-ct warning">⚠️ โหลดไม่สำเร็จ</div>';
+    }
+  }
+
+  function renderTable(classes) {
+    if (!classes.length) {
+      document.getElementById('class-table-wrap').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">🏫</div><p>ยังไม่มีชั้นเรียน กดเพิ่มได้เลย</p></div>';
+      return;
+    }
+    const trs = classes.map(c => {
+      const badge = c.active === 'TRUE'
+        ? '<span class="badge" style="background:#f0fdf4;color:#065f46;border:1px solid #bbf7d0;border-radius:20px;padding:3px 12px">✅ เปิด</span>'
+        : '<span class="badge" style="background:#f8fafc;color:#94a3b8;border:1px solid #e2e8f0;border-radius:20px;padding:3px 12px">⏸ ปิด</span>';
+      return `<tr>
+        <td style="font-weight:600;font-size:15px">${escHtml(c.class_name)}</td>
+        <td>${escHtml(c.level)}</td>
+        <td>ห้อง ${escHtml(c.room)}</td>
+        <td>${badge}</td>
+        <td>
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-secondary" onclick='editClass(${JSON.stringify(c).replace(/'/g,"&#39;")})'>
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-${c.active==='TRUE'?'danger':'success'}"
+                    onclick="toggleClass('${c.class_id}','${c.active}')">
+              <i class="bi bi-${c.active==='TRUE'?'pause-circle':'play-circle'}"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('class-table-wrap').innerHTML = `
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" style="font-size:14px">
+          <thead class="table-light"><tr>
+            <th>ชื่อห้อง</th><th>ระดับ</th><th>ห้อง</th><th>สถานะ</th><th>จัดการ</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function openModal(isEdit = false) {
+    document.getElementById('class-modal-title').textContent = isEdit ? 'แก้ไขชั้นเรียน' : 'เพิ่มชั้นเรียน';
+    if (!isEdit) {
+      document.getElementById('edit-class-id').value = '';
+      document.getElementById('inp-class-name').value  = '';
+      document.getElementById('inp-class-level').value = 'ป.6';
+      document.getElementById('inp-class-room').value  = '';
+      document.getElementById('inp-class-active').value = 'TRUE';
+    }
+    UI.modal('classModal', true);
+  }
+
+  function editClass(c) {
+    openModal(true);
+    document.getElementById('edit-class-id').value     = c.class_id;
+    document.getElementById('inp-class-name').value    = c.class_name;
+    document.getElementById('inp-class-level').value   = c.level;
+    document.getElementById('inp-class-room').value    = c.room;
+    document.getElementById('inp-class-active').value  = c.active;
+  }
+
+  async function saveClass() {
+    const classId   = document.getElementById('edit-class-id').value;
+    const className = document.getElementById('inp-class-name').value.trim();
+    if (!className) { UI.toast('กรุณาใส่ชื่อห้อง', 'warning'); return; }
+
+    const payload = {
+      class_id:   classId || undefined,
+      class_name: className,
+      level:      document.getElementById('inp-class-level').value,
+      room:       document.getElementById('inp-class-room').value.trim(),
+      active:     document.getElementById('inp-class-active').value,
+    };
+    UI.loading(true, 'กำลังบันทึก...');
+    try {
+      await (classId ? Api.Classes.update(payload) : Api.Classes.add(payload));
+      UI.toast(classId ? 'อัพเดตเรียบร้อย ✅' : 'เพิ่มชั้นเรียนเรียบร้อย ✅', 'success');
+      UI.modal('classModal', false);
+      loadClasses();
+    } catch(e) { UI.toast('บันทึกไม่สำเร็จ', 'error'); }
+    finally { UI.loading(false); }
+  }
+
+  async function toggleClass(classId, currentActive) {
+    const newActive = currentActive === 'TRUE' ? 'FALSE' : 'TRUE';
+    const action = newActive === 'TRUE' ? 'เปิด' : 'ปิด';
+    const ok = await UI.confirm(`ต้องการ${action}ใช้งานห้องเรียนนี้?`);
+    if (!ok) return;
+    UI.loading(true);
+    try {
+      await Api.Classes.update({ class_id: classId, active: newActive });
+      UI.toast(`${action}ห้องเรียนเรียบร้อยแล้ว`, 'success');
+      loadClasses();
+    } catch(e) { UI.toast('เกิดข้อผิดพลาด', 'error'); }
+    finally { UI.loading(false); }
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+</script>
+</body>
+</html>

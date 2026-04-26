@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>มอบหมายงาน — ClassTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="../assets/css/main.css" rel="stylesheet" />
+</head>
+<body>
+<nav id="sidebar">
+  <div class="sidebar-brand"><span class="brand-icon">📚</span><span class="brand-name">Class<b>Track</b></span></div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="user-avatar">ค</div>
+    <div><div class="user-name" id="user-name">กำลังโหลด...</div><div class="user-role" id="user-role"></div></div>
+  </div>
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html" data-page="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+    <li><a href="assignments.html" data-page="assignments"><i class="bi bi-journal-plus"></i> มอบหมายงาน</a></li>
+    <li><a href="checkwork.html" data-page="checkwork"><i class="bi bi-calendar-check"></i> ตรวจงาน</a></li>
+    <li><a href="students.html" data-page="students"><i class="bi bi-people"></i> จัดการนักเรียน</a></li>
+    <li><a href="reports.html" data-page="reports"><i class="bi bi-bar-chart-line"></i> รายงานผล</a></li>
+    <li class="admin-only"><a href="classes.html" data-page="classes"><i class="bi bi-building"></i> จัดการชั้นเรียน</a></li>
+    <li class="admin-only"><a href="settings.html" data-page="settings"><i class="bi bi-gear"></i> ตั้งค่าระบบ</a></li>
+  </ul>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="Auth.logout()"><i class="bi bi-box-arrow-left"></i> ออกจากระบบ</button></div>
+</nav>
+<header id="topbar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+  <span class="topbar-title">มอบหมายงาน</span><span></span>
+</header>
+
+<main id="main-content">
+  <div class="page-header">
+    <div>
+      <div class="page-title">มอบหมายงาน <span>Assignment</span></div>
+      <div class="page-sub">สร้างและจัดการงานที่มอบหมายให้นักเรียน</div>
+    </div>
+    <button class="btn-primary-ct" onclick="openModal()">
+      <i class="bi bi-plus-lg"></i> สร้างงานใหม่
+    </button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="card mb-3">
+    <div class="card-body-ct">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label">ชั้นเรียน</label>
+          <select class="form-select" id="filter-class" onchange="loadAssignments()">
+            <option value="">ทุกชั้นเรียน</option>
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label">วิชา</label>
+          <select class="form-select" id="filter-subject" onchange="loadAssignments()">
+            <option value="">ทุกวิชา</option>
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label">วันที่กำหนดส่ง</label>
+          <input type="date" class="form-control" id="filter-date" onchange="loadAssignments()" />
+        </div>
+        <div class="col-md-3">
+          <button class="btn-outline-ct w-100" onclick="clearFilters()">
+            <i class="bi bi-x-circle"></i> ล้างตัวกรอง
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assignment Table -->
+  <div class="card">
+    <div class="card-body-ct" id="assign-table-wrap">
+      <div class="d-flex justify-content-center py-5"><div class="spinner"></div></div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Create/Edit Assignment Modal ── -->
+<div class="modal fade" id="assignModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" style="border-radius:18px;border:none">
+      <div class="modal-header" style="border-bottom:1px solid var(--border);padding:20px 24px">
+        <h5 class="modal-title" id="modal-title" style="font-family:'Chakra Petch',sans-serif;font-weight:600">
+          สร้างงานใหม่
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:24px">
+        <input type="hidden" id="edit-assign-id" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">ชั้นเรียน <span class="text-danger">*</span></label>
+            <select class="form-select" id="inp-class" required></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">วิชา <span class="text-danger">*</span></label>
+            <select class="form-select" id="inp-subject" required></select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">ชื่องาน/การบ้าน <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="inp-title" placeholder="เช่น แบบฝึกหัด หน้า 12-15" required />
+          </div>
+          <div class="col-12">
+            <label class="form-label">รายละเอียด</label>
+            <textarea class="form-control" id="inp-detail" rows="3" placeholder="อธิบายรายละเอียดงาน..."></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">วันที่มอบหมาย <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="inp-assign-date" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">วันกำหนดส่ง <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="inp-due-date" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">เวลาที่ต้องส่ง</label>
+            <input type="time" class="form-control" id="inp-due-time" value="23:59" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">แนบรูป/ไฟล์ (ไม่เกิน 2MB)</label>
+            <input type="file" class="form-control" id="inp-file" accept="image/*,.pdf"
+                   onchange="previewFile(this)" />
+            <div id="file-preview" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);gap:10px">
+        <button class="btn-outline-ct" data-bs-dismiss="modal">ยกเลิก</button>
+        <button class="btn-primary-ct" onclick="submitAssignment()">
+          <i class="bi bi-save"></i> <span id="save-btn-text">บันทึก</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="global-loading" style="display:none;position:fixed;inset:0;z-index:8888;
+  background:rgba(255,255,255,0.88);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div class="spinner"></div>
+  <div id="loading-text" style="font-size:15px;color:#64748b;font-family:Sarabun,sans-serif">กำลังโหลด...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script>
+  const user = Auth.requireAuth();
+  if (user) {
+    UI.renderUserInfo();
+    const av = document.getElementById('user-avatar');
+    if (av && user.name) av.textContent = user.name.charAt(0);
+    if (user.role !== 'ADMIN') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    document.querySelector('[data-page="assignments"]').classList.add('active');
+    // Set today as default assign date
+    document.getElementById('inp-assign-date').value = new Date().toISOString().split('T')[0];
+    initPage();
+  }
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  let _classes  = [];
+  let _subjects = [];
+
+  async function initPage() {
+    try {
+      const [cr, sr] = await Promise.all([Api.Classes.list(), Api.Subjects.list()]);
+      _classes  = cr.data  || [];
+      _subjects = sr.data  || [];
+      populateDropdowns();
+      loadAssignments();
+    } catch(e) {
+      UI.toast('โหลดข้อมูลไม่สำเร็จ', 'error');
+    }
+  }
+
+  function populateDropdowns() {
+    const classOpts = _classes.map(c => `<option value="${c.class_id}">${escHtml(c.class_name)}</option>`).join('');
+    const subOpts   = _subjects.map(s => `<option value="${s.subject_id}">${escHtml(s.subject_name)}</option>`).join('');
+    document.getElementById('filter-class').insertAdjacentHTML('beforeend', classOpts);
+    document.getElementById('filter-subject').insertAdjacentHTML('beforeend', subOpts);
+    document.getElementById('inp-class').innerHTML = '<option value="">เลือกชั้นเรียน</option>' + classOpts;
+    document.getElementById('inp-subject').innerHTML = '<option value="">เลือกวิชา</option>' + subOpts;
+  }
+
+  async function loadAssignments() {
+    const wrap = document.getElementById('assign-table-wrap');
+    wrap.innerHTML = '<div class="d-flex justify-content-center py-5"><div class="spinner"></div></div>';
+    try {
+      const params = {};
+      const cls  = document.getElementById('filter-class').value;
+      const subj = document.getElementById('filter-subject').value;
+      const date = document.getElementById('filter-date').value;
+      if (cls)  params.class_id   = cls;
+      if (subj) params.subject_id = subj;
+      if (date) params.due        = date;
+      const res = await Api.get('/assignments', params);
+      renderTable(res.data || []);
+    } catch(e) {
+      wrap.innerHTML = '<div class="alert-ct warning">⚠️ โหลดข้อมูลไม่สำเร็จ</div>';
+    }
+  }
+
+  function renderTable(rows) {
+    if (!rows.length) {
+      document.getElementById('assign-table-wrap').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">📭</div><p>ไม่มีงานที่มอบหมาย</p></div>';
+      return;
+    }
+    const trs = rows.map(a => `
+      <tr>
+        <td><div style="font-weight:600">${escHtml(a.title)}</div>
+            <div style="font-size:12px;color:var(--muted)">${escHtml(a.detail||'')}</div></td>
+        <td>${escHtml(a.class_name)}</td>
+        <td>${escHtml(a.subject_name)}</td>
+        <td>${UI.formatDate(a.assign_date)}</td>
+        <td><span style="color:var(--danger);font-weight:600">${UI.formatDate(a.due_date)}</span>
+            <div style="font-size:12px;color:var(--muted)">${escHtml(a.due_time||'')}</div></td>
+        <td>
+          <div style="font-size:13px;font-weight:700;color:${(a.submit_pct>=80)?'var(--success)':(a.submit_pct>=50)?'var(--warning)':'var(--danger)'}">${a.submit_pct??0}%</div>
+          <div class="progress-ct mt-1"><div class="progress-ct-bar" style="width:${a.submit_pct??0}%;background:${(a.submit_pct>=80)?'var(--success)':(a.submit_pct>=50)?'var(--warning)':'var(--danger)'}"></div></div>
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="checkwork.html?assign_id=${a.assign_id}" class="btn btn-sm btn-outline-primary" title="ตรวจงาน"><i class="bi bi-check-square"></i></a>
+            <button class="btn btn-sm btn-outline-secondary" onclick="editAssignment(${JSON.stringify(a).replace(/"/g,'&quot;')})" title="แก้ไข"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-info" onclick="copyAssignment('${a.assign_id}')" title="คัดลอก"><i class="bi bi-copy"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteAssignment('${a.assign_id}')" title="ลบ"><i class="bi bi-trash"></i></button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    document.getElementById('assign-table-wrap').innerHTML = `
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" style="font-size:14px">
+          <thead class="table-light"><tr>
+            <th>ชื่องาน</th><th>ชั้น</th><th>วิชา</th>
+            <th>วันมอบ</th><th>กำหนดส่ง</th><th>% ส่ง</th><th>จัดการ</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function openModal(isEdit = false) {
+    document.getElementById('modal-title').textContent  = isEdit ? 'แก้ไขงาน' : 'สร้างงานใหม่';
+    document.getElementById('save-btn-text').textContent = isEdit ? 'อัพเดต' : 'บันทึก';
+    if (!isEdit) {
+      document.getElementById('edit-assign-id').value = '';
+      document.getElementById('inp-title').value  = '';
+      document.getElementById('inp-detail').value = '';
+      document.getElementById('inp-class').value  = '';
+      document.getElementById('inp-subject').value= '';
+      document.getElementById('inp-assign-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('inp-due-date').value = '';
+      document.getElementById('inp-due-time').value = '23:59';
+      document.getElementById('file-preview').innerHTML = '';
+    }
+    UI.modal('assignModal', true);
+  }
+
+  function editAssignment(a) {
+    openModal(true);
+    document.getElementById('edit-assign-id').value = a.assign_id;
+    document.getElementById('inp-title').value   = a.title   || '';
+    document.getElementById('inp-detail').value  = a.detail  || '';
+    document.getElementById('inp-class').value   = a.class_id|| '';
+    document.getElementById('inp-subject').value = a.subject_id || '';
+    document.getElementById('inp-assign-date').value = (a.assign_date||'').slice(0,10);
+    document.getElementById('inp-due-date').value    = (a.due_date||'').slice(0,10);
+    document.getElementById('inp-due-time').value    = a.due_time || '23:59';
+  }
+
+  async function submitAssignment() {
+    const assignId = document.getElementById('edit-assign-id').value;
+    const payload = {
+      class_id:    document.getElementById('inp-class').value,
+      subject_id:  document.getElementById('inp-subject').value,
+      title:       document.getElementById('inp-title').value.trim(),
+      detail:      document.getElementById('inp-detail').value.trim(),
+      assign_date: document.getElementById('inp-assign-date').value,
+      due_date:    document.getElementById('inp-due-date').value,
+      due_time:    document.getElementById('inp-due-time').value,
+    };
+
+    if (!payload.class_id || !payload.subject_id || !payload.title || !payload.due_date) {
+      UI.toast('กรุณากรอกข้อมูลที่จำเป็นให้ครบ', 'warning'); return;
+    }
+
+    // Upload file if any
+    const fileInput = document.getElementById('inp-file');
+    if (fileInput.files[0]) {
+      UI.loading(true, 'กำลังอัปโหลดรูป...');
+      try {
+        const upRes = await Api.Upload.image(fileInput.files[0]);
+        payload.attachment_drive_id = upRes.data?.driveId;
+        payload.attachment_url      = upRes.data?.url;
+      } catch(e) {
+        UI.toast('อัปโหลดรูปไม่สำเร็จ: ' + e.message, 'error');
+        UI.loading(false); return;
+      }
+    }
+
+    UI.loading(true, assignId ? 'กำลังอัพเดต...' : 'กำลังสร้างงาน...');
+    try {
+      if (assignId) {
+        payload.assign_id = assignId;
+        await Api.Assignments.update(payload);
+        UI.toast('อัพเดตงานเรียบร้อย ✅', 'success');
+      } else {
+        await Api.Assignments.create(payload);
+        UI.toast('สร้างงานและสร้างรายการนักเรียนเรียบร้อย ✅', 'success');
+      }
+      UI.modal('assignModal', false);
+      loadAssignments();
+    } catch(e) {
+      UI.toast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
+    } finally {
+      UI.loading(false);
+    }
+  }
+
+  async function deleteAssignment(assignId) {
+    const ok = await UI.confirm('ต้องการลบงานนี้ใช่หรือไม่?<br><small style="color:var(--muted)">รายการนักเรียนที่เกี่ยวข้องจะถูกลบด้วย</small>', 'ลบ');
+    if (!ok) return;
+    UI.loading(true, 'กำลังลบ...');
+    try {
+      await Api.Assignments.remove(assignId);
+      UI.toast('ลบงานเรียบร้อยแล้ว', 'success');
+      loadAssignments();
+    } catch(e) {
+      UI.toast('ลบไม่สำเร็จ', 'error');
+    } finally { UI.loading(false); }
+  }
+
+  async function copyAssignment(assignId) {
+    UI.loading(true, 'กำลังคัดลอก...');
+    try {
+      await Api.Assignments.copy(assignId);
+      UI.toast('คัดลอกงานเรียบร้อยแล้ว', 'success');
+      loadAssignments();
+    } catch(e) {
+      UI.toast('คัดลอกไม่สำเร็จ', 'error');
+    } finally { UI.loading(false); }
+  }
+
+  function previewFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const preview = document.getElementById('file-preview');
+    if (file.size > CONFIG.MAX_IMAGE_SIZE) {
+      UI.toast(`ไฟล์ใหญ่เกิน ${CONFIG.MAX_IMAGE_SIZE/1024/1024}MB ระบบจะย่อขนาดให้อัตโนมัติ`, 'warning');
+    }
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      preview.innerHTML = `<img src="${url}" style="max-height:120px;border-radius:8px;border:1px solid var(--border)" />`;
+    } else {
+      preview.innerHTML = `<div class="alert-ct info">📎 ${escHtml(file.name)}</div>`;
+    }
+  }
+
+  function clearFilters() {
+    document.getElementById('filter-class').value   = '';
+    document.getElementById('filter-subject').value = '';
+    document.getElementById('filter-date').value    = '';
+    loadAssignments();
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>รายงานผล — ClassTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="../assets/css/main.css" rel="stylesheet" />
+</head>
+<body>
+<nav id="sidebar">
+  <div class="sidebar-brand"><span class="brand-icon">📚</span><span class="brand-name">Class<b>Track</b></span></div>
+  <div class="sidebar-user"><div class="user-avatar" id="user-avatar">ค</div><div><div class="user-name" id="user-name">กำลังโหลด...</div><div class="user-role" id="user-role"></div></div></div>
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html" data-page="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+    <li><a href="assignments.html" data-page="assignments"><i class="bi bi-journal-plus"></i> มอบหมายงาน</a></li>
+    <li><a href="checkwork.html" data-page="checkwork"><i class="bi bi-calendar-check"></i> ตรวจงาน</a></li>
+    <li><a href="students.html" data-page="students"><i class="bi bi-people"></i> จัดการนักเรียน</a></li>
+    <li><a href="reports.html" data-page="reports"><i class="bi bi-bar-chart-line"></i> รายงานผล</a></li>
+    <li class="admin-only"><a href="classes.html" data-page="classes"><i class="bi bi-building"></i> จัดการชั้นเรียน</a></li>
+    <li class="admin-only"><a href="settings.html" data-page="settings"><i class="bi bi-gear"></i> ตั้งค่าระบบ</a></li>
+  </ul>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="Auth.logout()"><i class="bi bi-box-arrow-left"></i> ออกจากระบบ</button></div>
+</nav>
+<header id="topbar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+  <span class="topbar-title">รายงานผล</span><span></span>
+</header>
+
+<main id="main-content">
+  <div class="page-header">
+    <div>
+      <div class="page-title">รายงานผล <span>Reports</span></div>
+      <div class="page-sub">วิเคราะห์ผลการส่งงานและสถิติรายนักเรียน</div>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn-outline-ct" onclick="exportExcel()"><i class="bi bi-file-earmark-excel"></i> Export Excel</button>
+      <button class="btn-primary-ct" onclick="exportPDF()"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="card mb-3">
+    <div class="card-body-ct">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label">ชั้นเรียน</label>
+          <select class="form-select" id="rep-class"><option value="">ทุกชั้น</option></select>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label">วิชา</label>
+          <select class="form-select" id="rep-subject"><option value="">ทุกวิชา</option></select>
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label">จากวันที่</label>
+          <input type="date" class="form-control" id="rep-from" />
+        </div>
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label">ถึงวันที่</label>
+          <input type="date" class="form-control" id="rep-to" />
+        </div>
+        <div class="col-md-2">
+          <button class="btn-primary-ct w-100" onclick="loadReport()">
+            <i class="bi bi-search"></i> ค้นหา
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="row g-3 mb-3" id="report-stats" style="display:none">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon blue">📋</div>
+        <div><div class="stat-value" id="rs-total-assign">0</div><div class="stat-label">งานทั้งหมด</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <div><div class="stat-value" id="rs-avg-submit">0%</div><div class="stat-label">% ส่งงานเฉลี่ย</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon amber">🏆</div>
+        <div><div class="stat-value" id="rs-top-count">0</div><div class="stat-label">ส่งครบ 100%</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon red">🚨</div>
+        <div><div class="stat-value" id="rs-risk-count">0</div><div class="stat-label">เสี่ยง (&lt;50%)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab panels -->
+  <div class="card">
+    <div class="card-header-ct">
+      <ul class="nav nav-tabs" style="border:none;gap:4px" id="report-tabs">
+        <li class="nav-item">
+          <button class="nav-link active" onclick="switchTab('class')" id="tab-class"
+            style="font-family:Sarabun,sans-serif;border-radius:8px 8px 0 0;font-size:14.5px">
+            📊 สรุปรายห้อง
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" onclick="switchTab('student')" id="tab-student"
+            style="font-family:Sarabun,sans-serif;border-radius:8px 8px 0 0;font-size:14.5px">
+            👤 รายนักเรียน
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" onclick="switchTab('risk')" id="tab-risk"
+            style="font-family:Sarabun,sans-serif;border-radius:8px 8px 0 0;font-size:14.5px">
+            🚨 เสี่ยงตก
+          </button>
+        </li>
+      </ul>
+    </div>
+    <div class="card-body-ct" id="report-content">
+      <div class="empty-state"><div class="empty-icon">📊</div><p>กรุณาเลือกเงื่อนไขและกด "ค้นหา"</p></div>
+    </div>
+  </div>
+</main>
+
+<div id="global-loading" style="display:none;position:fixed;inset:0;z-index:8888;background:rgba(255,255,255,0.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div class="spinner"></div><div id="loading-text" style="font-size:15px;color:#64748b;font-family:Sarabun,sans-serif">กำลังโหลด...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script>
+  const user = Auth.requireAuth();
+  if (user) {
+    UI.renderUserInfo();
+    const av = document.getElementById('user-avatar');
+    if (av && user.name) av.textContent = user.name.charAt(0);
+    if (user.role !== 'ADMIN') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    document.querySelector('[data-page="reports"]').classList.add('active');
+
+    // Default date range: current month
+    const now = new Date();
+    document.getElementById('rep-from').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    document.getElementById('rep-to').value   = now.toISOString().split('T')[0];
+    initPage();
+  }
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  let _reportData  = null;
+  let _activeTab   = 'class';
+
+  async function initPage() {
+    try {
+      const [cr, sr] = await Promise.all([Api.Classes.list(), Api.Subjects.list()]);
+      const classOpts = (cr.data||[]).map(c=>`<option value="${c.class_id}">${escHtml(c.class_name)}</option>`).join('');
+      const subOpts   = (sr.data||[]).map(s=>`<option value="${s.subject_id}">${escHtml(s.subject_name)}</option>`).join('');
+      document.getElementById('rep-class').insertAdjacentHTML('beforeend',classOpts);
+      document.getElementById('rep-subject').insertAdjacentHTML('beforeend',subOpts);
+    } catch(e) {}
+  }
+
+  async function loadReport() {
+    UI.loading(true,'กำลังสร้างรายงาน...');
+    try {
+      const params = {
+        class_id:   document.getElementById('rep-class').value,
+        subject_id: document.getElementById('rep-subject').value,
+        from:       document.getElementById('rep-from').value,
+        to:         document.getElementById('rep-to').value,
+      };
+      const res = await Api.Reports.summary(params);
+      _reportData = res.data || {};
+      document.getElementById('report-stats').style.display = 'flex';
+
+      // Fill stats
+      document.getElementById('rs-total-assign').textContent = _reportData.total_assignments || 0;
+      document.getElementById('rs-avg-submit').textContent   = (_reportData.avg_submit_pct||0) + '%';
+      document.getElementById('rs-top-count').textContent    = _reportData.top_students || 0;
+      document.getElementById('rs-risk-count').textContent   = _reportData.risk_students || 0;
+
+      renderTab(_activeTab);
+    } catch(e) {
+      UI.toast('โหลดรายงานไม่สำเร็จ','error');
+    } finally { UI.loading(false); }
+  }
+
+  function switchTab(tab) {
+    _activeTab = tab;
+    document.querySelectorAll('#report-tabs .nav-link').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    if (_reportData) renderTab(tab);
+  }
+
+  function renderTab(tab) {
+    const el = document.getElementById('report-content');
+    if (!_reportData) return;
+
+    if (tab === 'class') {
+      const rows = (_reportData.by_class || []);
+      if (!rows.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>ไม่มีข้อมูล</p></div>'; return; }
+      el.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" style="font-size:14px">
+            <thead class="table-light"><tr>
+              <th>ชั้นเรียน</th><th>งานทั้งหมด</th><th>ส่งครบ</th><th>% เฉลี่ย</th><th>สถานะ</th>
+            </tr></thead>
+            <tbody>
+              ${rows.map(r => {
+                const pct = r.avg_pct || 0;
+                const color = pct>=80?'var(--success)':pct>=50?'var(--warning)':'var(--danger)';
+                return `<tr>
+                  <td style="font-weight:600">${escHtml(r.class_name)}</td>
+                  <td>${r.total_assignments}</td>
+                  <td>${r.complete_assignments}</td>
+                  <td>
+                    <div style="font-weight:700;color:${color};margin-bottom:4px">${pct}%</div>
+                    <div class="progress-ct"><div class="progress-ct-bar" style="width:${pct}%;background:${color}"></div></div>
+                  </td>
+                  <td>${pct>=80?'<span style="color:var(--success)">✅ ดี</span>':pct>=50?'<span style="color:var(--warning)">⚠️ ปานกลาง</span>':'<span style="color:var(--danger)">🚨 ต้องปรับปรุง</span>'}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    else if (tab === 'student') {
+      const rows = (_reportData.by_student || []);
+      if (!rows.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>ไม่มีข้อมูล</p></div>'; return; }
+      el.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" style="font-size:14px">
+            <thead class="table-light"><tr>
+              <th>#</th><th>ชื่อ-นามสกุล</th><th>ชั้น</th>
+              <th>ส่ง</th><th>ไม่ส่ง</th><th>ส่งช้า</th><th>% ส่ง</th>
+            </tr></thead>
+            <tbody>
+              ${rows.map((r, i) => {
+                const pct = r.submit_pct || 0;
+                const color = pct>=80?'var(--success)':pct>=50?'var(--warning)':'var(--danger)';
+                return `<tr>
+                  <td style="color:var(--muted)">${i+1}</td>
+                  <td style="font-weight:500">${escHtml(r.fullname)}</td>
+                  <td>${escHtml(r.class_name)}</td>
+                  <td style="color:var(--success);font-weight:600">${r.sent||0}</td>
+                  <td style="color:var(--danger);font-weight:600">${r.not_sent||0}</td>
+                  <td style="color:var(--warning);font-weight:600">${r.late||0}</td>
+                  <td>
+                    <span style="font-weight:700;color:${color}">${pct}%</span>
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    else if (tab === 'risk') {
+      const rows = (_reportData.at_risk || []);
+      if (!rows.length) {
+        el.innerHTML = '<div class="alert-ct success">🎉 ไม่มีนักเรียนที่เสี่ยงตกในช่วงเวลานี้!</div>';
+        return;
+      }
+      el.innerHTML = `
+        <div class="alert-ct warning mb-3">⚠️ นักเรียนเหล่านี้ส่งงานต่ำกว่า 50% — ควรติดตาม</div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" style="font-size:14px">
+            <thead class="table-light"><tr>
+              <th>#</th><th>ชื่อ-นามสกุล</th><th>ชั้น</th><th>% ส่งงาน</th><th>งานที่ยังค้าง</th>
+            </tr></thead>
+            <tbody>
+              ${rows.map((r, i) => `<tr>
+                <td style="color:var(--muted)">${i+1}</td>
+                <td style="font-weight:600;color:var(--danger)">${escHtml(r.fullname)}</td>
+                <td>${escHtml(r.class_name)}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="progress-ct" style="width:80px"><div class="progress-ct-bar" style="width:${r.submit_pct}%;background:var(--danger)"></div></div>
+                    <span style="font-weight:700;color:var(--danger)">${r.submit_pct}%</span>
+                  </div>
+                </td>
+                <td><span class="badge bg-danger bg-opacity-10 text-danger" style="border-radius:20px;padding:4px 12px">${r.pending_count} งาน</span></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+  }
+
+  async function exportExcel() {
+    UI.loading(true,'กำลัง Export Excel...');
+    try {
+      const params = {
+        class_id: document.getElementById('rep-class').value,
+        subject_id: document.getElementById('rep-subject').value,
+        from: document.getElementById('rep-from').value,
+        to:   document.getElementById('rep-to').value,
+      };
+      const res = await Api.Reports.exportExcel(params);
+      if (res.data?.url) window.open(res.data.url, '_blank');
+      else UI.toast('ไม่สามารถสร้างไฟล์ได้','error');
+    } catch(e) { UI.toast('Export ไม่สำเร็จ','error'); }
+    finally { UI.loading(false); }
+  }
+
+  async function exportPDF() {
+    UI.loading(true,'กำลัง Export PDF...');
+    try {
+      const params = {
+        class_id: document.getElementById('rep-class').value,
+        subject_id: document.getElementById('rep-subject').value,
+        from: document.getElementById('rep-from').value,
+        to:   document.getElementById('rep-to').value,
+      };
+      const res = await Api.Reports.exportPDF(params);
+      if (res.data?.url) window.open(res.data.url, '_blank');
+      else UI.toast('ไม่สามารถสร้างไฟล์ได้','error');
+    } catch(e) { UI.toast('Export ไม่สำเร็จ','error'); }
+    finally { UI.loading(false); }
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+</script>
+</body>
+</html>

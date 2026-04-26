@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ตรวจงาน — ClassTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="../assets/css/main.css" rel="stylesheet" />
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sidebar-brand"><span class="brand-icon">📚</span><span class="brand-name">Class<b>Track</b></span></div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="user-avatar">ค</div>
+    <div><div class="user-name" id="user-name">กำลังโหลด...</div><div class="user-role" id="user-role"></div></div>
+  </div>
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html" data-page="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+    <li><a href="assignments.html" data-page="assignments"><i class="bi bi-journal-plus"></i> มอบหมายงาน</a></li>
+    <li><a href="checkwork.html" data-page="checkwork"><i class="bi bi-calendar-check"></i> ตรวจงาน</a></li>
+    <li><a href="students.html" data-page="students"><i class="bi bi-people"></i> จัดการนักเรียน</a></li>
+    <li><a href="reports.html" data-page="reports"><i class="bi bi-bar-chart-line"></i> รายงานผล</a></li>
+    <li class="admin-only"><a href="classes.html" data-page="classes"><i class="bi bi-building"></i> จัดการชั้นเรียน</a></li>
+    <li class="admin-only"><a href="settings.html" data-page="settings"><i class="bi bi-gear"></i> ตั้งค่าระบบ</a></li>
+  </ul>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="Auth.logout()"><i class="bi bi-box-arrow-left"></i> ออกจากระบบ</button></div>
+</nav>
+
+<header id="topbar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+  <span class="topbar-title">ตรวจงาน</span>
+  <span></span>
+</header>
+
+<main id="main-content">
+  <div class="page-header">
+    <div>
+      <div class="page-title">ตรวจงาน <span>Check Work</span></div>
+      <div class="page-sub">เลือกวันที่จากปฏิทิน แล้วกดตรวจสถานะรายนักเรียน</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Calendar -->
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header-ct">
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(-1)"><i class="bi bi-chevron-left"></i></button>
+          <h5 id="cal-title" style="margin:0">—</h5>
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(1)"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <div class="card-body-ct">
+          <div class="cal-grid">
+            <div class="cal-day-hdr">อา</div><div class="cal-day-hdr">จ</div>
+            <div class="cal-day-hdr">อ</div><div class="cal-day-hdr">พ</div>
+            <div class="cal-day-hdr">พฤ</div><div class="cal-day-hdr">ศ</div>
+            <div class="cal-day-hdr">ส</div>
+          </div>
+          <div class="cal-grid mt-1" id="cal-days"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignment list + submission panel -->
+    <div class="col-lg-8">
+      <!-- Assignments of selected date -->
+      <div class="card mb-3">
+        <div class="card-header-ct">
+          <h5><i class="bi bi-list-task me-2"></i>งานในวันที่เลือก: <span id="selected-date-label">—</span></h5>
+        </div>
+        <div class="card-body-ct" id="assign-list">
+          <div class="empty-state"><div class="empty-icon">📅</div><p>กรุณาเลือกวันที่จากปฏิทิน</p></div>
+        </div>
+      </div>
+
+      <!-- Submission checking panel -->
+      <div class="card" id="submission-panel" style="display:none">
+        <div class="card-header-ct">
+          <div>
+            <h5 id="sub-assign-title" style="margin-bottom:2px">—</h5>
+            <small id="sub-assign-meta" style="color:var(--muted)">—</small>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn-success-ct" onclick="bulkAction('SENT')"><i class="bi bi-check-all"></i> ส่งครบทุกคน</button>
+            <button class="btn-danger-ct" onclick="bulkAction('NOT_SENT')"><i class="bi bi-x-circle"></i> ไม่ส่งทุกคน</button>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="padding:12px 22px 0">
+          <div class="d-flex justify-content-between mb-1">
+            <small style="color:var(--muted)">ความคืบหน้าการตรวจ</small>
+            <small id="sub-progress-label" style="font-weight:600;color:var(--primary)">0 / 0</small>
+          </div>
+          <div class="progress-ct mb-2">
+            <div class="progress-ct-bar" id="sub-progress-bar" style="width:0%;background:var(--primary)"></div>
+          </div>
+        </div>
+
+        <div class="card-body-ct">
+          <div id="submission-table">
+            <div class="d-flex justify-content-center py-4"><div class="spinner"></div></div>
+          </div>
+          <div class="d-flex justify-content-end mt-3 gap-2">
+            <button class="btn-outline-ct" onclick="closeSubmissionPanel()">ปิด</button>
+            <button class="btn-primary-ct" onclick="saveSubmissions()">
+              <i class="bi bi-save"></i> บันทึกทั้งหมด
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="global-loading" style="display:none;position:fixed;inset:0;z-index:8888;
+  background:rgba(255,255,255,0.88);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div class="spinner"></div>
+  <div id="loading-text" style="font-size:15px;color:#64748b;font-family:Sarabun,sans-serif">กำลังโหลด...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script>
+  const user = Auth.requireAuth();
+  if (user) {
+    UI.renderUserInfo();
+    const av = document.getElementById('user-avatar');
+    if (av && user.name) av.textContent = user.name.charAt(0);
+    if (user.role !== 'ADMIN') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    document.querySelector('[data-page="checkwork"]').classList.add('active');
+  }
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  // ── Calendar State ─────────────────────
+  let _calYear  = new Date().getFullYear();
+  let _calMonth = new Date().getMonth(); // 0-indexed
+  let _selectedDate = null;
+  let _dueDates = new Set(); // dates that have assignments (YYYY-MM-DD)
+
+  // ── Submission State ───────────────────
+  let _currentAssignId = null;
+  /** @type {Map<string, {status:string, note:string}>} key=student_id */
+  let _submissionMap = new Map();
+
+  /** เปลี่ยนเดือน */
+  function changeMonth(delta) {
+    _calMonth += delta;
+    if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+    if (_calMonth < 0)  { _calMonth = 11; _calYear--; }
+    loadCalendar();
+  }
+
+  /** โหลดปฏิทินพร้อม due dates */
+  async function loadCalendar() {
+    renderCalendar();
+    try {
+      const from = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-01`;
+      const lastDay = new Date(_calYear, _calMonth+1, 0).getDate();
+      const to = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${lastDay}`;
+      const res = await Api.Reports.summary({ from, to });
+      _dueDates = new Set((res.data?.due_dates || []).map(d => d.slice(0,10)));
+      renderCalendar();
+    } catch(e) {}
+  }
+
+  /** Render calendar grid */
+  function renderCalendar() {
+    const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                      'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    document.getElementById('cal-title').textContent =
+      `${thMonths[_calMonth]} ${_calYear + 543}`;
+
+    const firstDay = new Date(_calYear, _calMonth, 1).getDay();
+    const daysInMonth = new Date(_calYear, _calMonth + 1, 0).getDate();
+    const daysInPrev  = new Date(_calYear, _calMonth, 0).getDate();
+    const todayStr    = new Date().toISOString().split('T')[0];
+
+    let html = '';
+    // Previous month
+    for (let i = firstDay - 1; i >= 0; i--) {
+      html += `<div class="cal-day other-month">${daysInPrev - i}</div>`;
+    }
+    // Current month
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      let cls = 'cal-day';
+      if (dateStr === todayStr) cls += ' today';
+      if (dateStr === _selectedDate) cls += ' selected';
+      if (_dueDates.has(dateStr)) cls += ' has-work';
+      html += `<div class="${cls}" onclick="selectDate('${dateStr}')">${d}</div>`;
+    }
+    // Next month padding
+    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+    for (let i = 1; i <= totalCells - firstDay - daysInMonth; i++) {
+      html += `<div class="cal-day other-month">${i}</div>`;
+    }
+    document.getElementById('cal-days').innerHTML = html;
+  }
+
+  /** เลือกวันที่ */
+  async function selectDate(dateStr) {
+    _selectedDate = dateStr;
+    renderCalendar();
+    const thDate = new Date(dateStr).toLocaleDateString('th-TH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('selected-date-label').textContent = thDate;
+    closeSubmissionPanel();
+
+    const el = document.getElementById('assign-list');
+    el.innerHTML = '<div class="d-flex justify-content-center py-4"><div class="spinner"></div></div>';
+    try {
+      const res = await Api.Assignments.byDate(dateStr);
+      renderAssignList(res.data || []);
+    } catch(e) {
+      el.innerHTML = '<div class="alert-ct warning">⚠️ โหลดข้อมูลไม่สำเร็จ</div>';
+    }
+  }
+
+  /** แสดงรายการงานในวันที่เลือก */
+  function renderAssignList(assignments) {
+    const el = document.getElementById('assign-list');
+    if (!assignments.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>ไม่มีงานในวันนี้</p></div>';
+      return;
+    }
+    el.innerHTML = assignments.map(a => {
+      const pct = a.submit_pct ?? 0;
+      const color = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)';
+      return `
+        <div class="d-flex align-items-center gap-3 py-2 border-bottom" style="cursor:pointer"
+             onclick="openSubmissionPanel('${a.assign_id}','${escHtml(a.title)}','${escHtml(a.class_name)} · ${escHtml(a.subject_name)}')">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14.5px">${escHtml(a.title)}</div>
+            <div style="font-size:12.5px;color:var(--muted)">${escHtml(a.class_name)} · ${escHtml(a.subject_name)}</div>
+          </div>
+          <div style="text-align:right;min-width:80px">
+            <div style="font-size:13px;font-weight:700;color:${color}">${pct}%</div>
+            <div class="progress-ct" style="margin-top:4px">
+              <div class="progress-ct-bar" style="width:${pct}%;background:${color}"></div>
+            </div>
+          </div>
+          <i class="bi bi-chevron-right text-muted"></i>
+        </div>`;
+    }).join('');
+  }
+
+  /** เปิด submission panel */
+  async function openSubmissionPanel(assignId, title, meta) {
+    _currentAssignId = assignId;
+    _submissionMap.clear();
+
+    document.getElementById('sub-assign-title').textContent = title;
+    document.getElementById('sub-assign-meta').textContent  = meta;
+    document.getElementById('submission-panel').style.display = 'block';
+    document.getElementById('submission-table').innerHTML =
+      '<div class="d-flex justify-content-center py-4"><div class="spinner"></div></div>';
+
+    try {
+      const res = await Api.Submissions.list(assignId);
+      const subs = res.data || [];
+      subs.forEach(s => _submissionMap.set(s.student_id, { status: s.status, note: s.note || '' }));
+      renderSubmissionTable(subs);
+    } catch(e) {
+      document.getElementById('submission-table').innerHTML =
+        '<div class="alert-ct warning">⚠️ โหลดรายชื่อไม่สำเร็จ</div>';
+    }
+  }
+
+  function closeSubmissionPanel() {
+    document.getElementById('submission-panel').style.display = 'none';
+    _currentAssignId = null;
+    _submissionMap.clear();
+  }
+
+  /** Render ตารางรายชื่อ + ปุ่มสถานะ */
+  function renderSubmissionTable(submissions) {
+    updateProgress(submissions);
+    const html = `
+      <table class="table table-hover" style="font-size:14px">
+        <thead class="table-light"><tr>
+          <th style="width:40px">#</th>
+          <th>ชื่อ-นามสกุล</th>
+          <th>สถานะ</th>
+          <th>หมายเหตุ</th>
+        </tr></thead>
+        <tbody>
+          ${submissions.map((s, i) => `
+            <tr id="row-${s.student_id}">
+              <td style="color:var(--muted)">${i+1}</td>
+              <td style="font-weight:500">${escHtml(s.prefix)}${escHtml(s.fullname)}</td>
+              <td>
+                <div class="d-flex gap-1 flex-wrap">
+                  ${['SENT','NOT_SENT','LATE','EXCUSED'].map(st => {
+                    const icons = { SENT:'✅', NOT_SENT:'❌', LATE:'🟡', EXCUSED:'🟦' };
+                    const active = s.status === st ? 'active' : '';
+                    return `<button class="status-btn ${st} ${active}" id="btn-${st}-${s.student_id}"
+                              onclick="setStatus('${s.student_id}','${st}')">
+                              ${icons[st]}
+                            </button>`;
+                  }).join('')}
+                </div>
+              </td>
+              <td>
+                <input type="text" class="form-control" style="padding:5px 10px;font-size:13px"
+                  placeholder="หมายเหตุ (ไม่บังคับ)"
+                  value="${escHtml(s.note || '')}"
+                  oninput="setNote('${s.student_id}', this.value)" />
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+    document.getElementById('submission-table').innerHTML = html;
+  }
+
+  /**
+   * เปลี่ยนสถานะรายคน
+   * @param {string} studentId
+   * @param {string} status
+   */
+  function setStatus(studentId, status) {
+    const sub = _submissionMap.get(studentId);
+    if (!sub) return;
+    sub.status = status;
+
+    // Update button UI
+    ['SENT','NOT_SENT','LATE','EXCUSED'].forEach(st => {
+      const btn = document.getElementById(`btn-${st}-${studentId}`);
+      if (btn) btn.classList.toggle('active', st === status);
+    });
+    updateProgressFromMap();
+  }
+
+  function setNote(studentId, note) {
+    const sub = _submissionMap.get(studentId);
+    if (sub) sub.note = note;
+  }
+
+  /** อัพเดต progress bar */
+  function updateProgress(subs) {
+    const total  = subs.length;
+    const checked = subs.filter(s => s.status !== 'NOT_SENT').length;
+    _updateProgressUI(checked, total);
+  }
+
+  function updateProgressFromMap() {
+    const vals = [..._submissionMap.values()];
+    const total   = vals.length;
+    const checked = vals.filter(v => v.status !== 'NOT_SENT').length;
+    _updateProgressUI(checked, total);
+  }
+
+  function _updateProgressUI(checked, total) {
+    const pct = total ? Math.round(checked / total * 100) : 0;
+    document.getElementById('sub-progress-bar').style.width = `${pct}%`;
+    document.getElementById('sub-progress-label').textContent = `${checked} / ${total}`;
+  }
+
+  /** Bulk action */
+  async function bulkAction(status) {
+    const label = { SENT:'ส่งแล้ว', NOT_SENT:'ไม่ส่ง' }[status] || status;
+    const ok = await UI.confirm(`เปลี่ยนสถานะ <b>ทุกคน</b> เป็น "${label}" ใช่หรือไม่?`, 'ยืนยัน');
+    if (!ok) return;
+    _submissionMap.forEach((v, k) => { v.status = status; });
+    // Re-render
+    const subs = [..._submissionMap.entries()].map(([id, v]) => ({
+      student_id: id, status: v.status, note: v.note,
+    }));
+    // Refresh button states only
+    _submissionMap.forEach((v, sid) => {
+      ['SENT','NOT_SENT','LATE','EXCUSED'].forEach(st => {
+        const btn = document.getElementById(`btn-${st}-${sid}`);
+        if (btn) btn.classList.toggle('active', st === status);
+      });
+    });
+    updateProgressFromMap();
+    UI.toast(`เปลี่ยนสถานะทุกคนเป็น "${label}" แล้ว`, 'success');
+  }
+
+  /** บันทึกทั้งหมด */
+  async function saveSubmissions() {
+    if (!_currentAssignId) return;
+    UI.loading(true, 'กำลังบันทึก...');
+    try {
+      const rows = [..._submissionMap.entries()].map(([studentId, v]) => ({
+        student_id: studentId,
+        status: v.status,
+        note: v.note,
+        assign_id: _currentAssignId,
+      }));
+      await Api.Submissions.bulkUpdate({ rows, assign_id: _currentAssignId });
+      UI.toast('บันทึกเรียบร้อยแล้ว! 🎉', 'success');
+      // Refresh assign list
+      if (_selectedDate) selectDate(_selectedDate);
+    } catch(e) {
+      UI.toast('เกิดข้อผิดพลาดในการบันทึก', 'error');
+    } finally {
+      UI.loading(false);
+    }
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // ── Init ──────────────────────────────
+  loadCalendar();
+
+  // Check if came from link with assign_id
+  const urlParams = new URLSearchParams(location.search);
+  const initAssignId = urlParams.get('assign_id');
+  if (initAssignId) {
+    setTimeout(() => {
+      const today = new Date().toISOString().split('T')[0];
+      selectDate(today).then(() => {
+        openSubmissionPanel(initAssignId, 'กำลังโหลด...', '');
+      });
+    }, 500);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการนักเรียน — ClassTrack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="../assets/css/main.css" rel="stylesheet" />
+</head>
+<body>
+<nav id="sidebar">
+  <div class="sidebar-brand"><span class="brand-icon">📚</span><span class="brand-name">Class<b>Track</b></span></div>
+  <div class="sidebar-user"><div class="user-avatar" id="user-avatar">ค</div><div><div class="user-name" id="user-name">กำลังโหลด...</div><div class="user-role" id="user-role"></div></div></div>
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html" data-page="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+    <li><a href="assignments.html" data-page="assignments"><i class="bi bi-journal-plus"></i> มอบหมายงาน</a></li>
+    <li><a href="checkwork.html" data-page="checkwork"><i class="bi bi-calendar-check"></i> ตรวจงาน</a></li>
+    <li><a href="students.html" data-page="students"><i class="bi bi-people"></i> จัดการนักเรียน</a></li>
+    <li><a href="reports.html" data-page="reports"><i class="bi bi-bar-chart-line"></i> รายงานผล</a></li>
+    <li class="admin-only"><a href="classes.html" data-page="classes"><i class="bi bi-building"></i> จัดการชั้นเรียน</a></li>
+    <li class="admin-only"><a href="settings.html" data-page="settings"><i class="bi bi-gear"></i> ตั้งค่าระบบ</a></li>
+  </ul>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="Auth.logout()"><i class="bi bi-box-arrow-left"></i> ออกจากระบบ</button></div>
+</nav>
+<header id="topbar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+  <span class="topbar-title">นักเรียน</span><span></span>
+</header>
+
+<main id="main-content">
+  <div class="page-header">
+    <div>
+      <div class="page-title">จัดการนักเรียน <span>Students</span></div>
+      <div class="page-sub">เพิ่ม แก้ไข และ Import รายชื่อนักเรียน</div>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn-outline-ct" onclick="openImportModal()"><i class="bi bi-file-earmark-arrow-up"></i> Import CSV</button>
+      <button class="btn-primary-ct" onclick="openStudentModal()"><i class="bi bi-person-plus"></i> เพิ่มนักเรียน</button>
+    </div>
+  </div>
+
+  <!-- Class selector + Search -->
+  <div class="card mb-3">
+    <div class="card-body-ct">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-5 col-md-4">
+          <label class="form-label">เลือกชั้นเรียน</label>
+          <select class="form-select" id="sel-class" onchange="loadStudents()">
+            <option value="">เลือกชั้นเรียน...</option>
+          </select>
+        </div>
+        <div class="col-sm-7 col-md-5">
+          <label class="form-label">ค้นหา</label>
+          <input type="text" class="form-control" id="inp-search" placeholder="ค้นหาชื่อ หรือเลขประจำตัว..." oninput="filterStudents()" />
+        </div>
+        <div class="col-md-3">
+          <button class="btn-outline-ct w-100" onclick="exportStudents()"><i class="bi bi-file-earmark-excel"></i> Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Count -->
+  <div class="d-flex align-items-center justify-content-between mb-2 px-1">
+    <small id="student-count" style="color:var(--muted)">กำลังโหลด...</small>
+    <div class="d-flex gap-2">
+      <span class="badge" style="background:#f0fdf4;color:#065f46;border:1px solid #bbf7d0;border-radius:20px;padding:4px 12px">✅ Active</span>
+      <span class="badge" style="background:#fff5f5;color:#991b1b;border:1px solid #fecaca;border-radius:20px;padding:4px 12px">❌ Inactive</span>
+    </div>
+  </div>
+
+  <!-- Student Table -->
+  <div class="card">
+    <div class="card-body-ct" id="student-table-wrap">
+      <div class="empty-state"><div class="empty-icon">👥</div><p>กรุณาเลือกชั้นเรียนก่อน</p></div>
+    </div>
+  </div>
+</main>
+
+<!-- Student Modal -->
+<div class="modal fade" id="studentModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:18px;border:none">
+      <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border)">
+        <h5 class="modal-title" id="student-modal-title" style="font-family:'Chakra Petch',sans-serif;font-weight:600">เพิ่มนักเรียน</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:24px">
+        <input type="hidden" id="edit-student-id" />
+        <div class="row g-3">
+          <div class="col-4">
+            <label class="form-label">คำนำหน้า</label>
+            <select class="form-select" id="inp-prefix">
+              <option value="ด.ช.">ด.ช.</option>
+              <option value="ด.ญ.">ด.ญ.</option>
+              <option value="นาย">นาย</option>
+              <option value="น.ส.">น.ส.</option>
+            </select>
+          </div>
+          <div class="col-8">
+            <label class="form-label">ชื่อ-นามสกุล <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="inp-fullname" placeholder="ชื่อ นามสกุล" required />
+          </div>
+          <div class="col-6">
+            <label class="form-label">เลขประจำตัว</label>
+            <input type="text" class="form-control" id="inp-student-code" placeholder="เช่น 10234" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">ชั้นเรียน <span class="text-danger">*</span></label>
+            <select class="form-select" id="inp-student-class" required></select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">สถานะ</label>
+            <select class="form-select" id="inp-student-status">
+              <option value="ACTIVE">ACTIVE — กำลังศึกษา</option>
+              <option value="INACTIVE">INACTIVE — ไม่มีในระบบ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);gap:10px">
+        <button class="btn-outline-ct" data-bs-dismiss="modal">ยกเลิก</button>
+        <button class="btn-primary-ct" onclick="saveStudent()"><i class="bi bi-save"></i> บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:18px;border:none">
+      <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border)">
+        <h5 class="modal-title" style="font-family:'Chakra Petch',sans-serif;font-weight:600">Import รายชื่อจาก CSV</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:24px">
+        <div class="alert-ct info mb-3">
+          ℹ️ ไฟล์ CSV ต้องมีหัวคอลัมน์:<br>
+          <code>student_code, prefix, fullname, class_id, status</code>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">เลือกไฟล์ CSV</label>
+          <input type="file" class="form-control" id="inp-csv" accept=".csv,.txt" onchange="previewCSV(this)" />
+        </div>
+        <div id="csv-preview" style="max-height:200px;overflow-y:auto"></div>
+      </div>
+      <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);gap:10px">
+        <button class="btn-outline-ct" data-bs-dismiss="modal">ยกเลิก</button>
+        <button class="btn-primary-ct" onclick="importCSV()"><i class="bi bi-upload"></i> Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="global-loading" style="display:none;position:fixed;inset:0;z-index:8888;background:rgba(255,255,255,0.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div class="spinner"></div><div id="loading-text" style="font-size:15px;color:#64748b;font-family:Sarabun,sans-serif">กำลังโหลด...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script>
+  const user = Auth.requireAuth();
+  if (user) {
+    UI.renderUserInfo();
+    const av = document.getElementById('user-avatar');
+    if (av && user.name) av.textContent = user.name.charAt(0);
+    if (user.role !== 'ADMIN') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    document.querySelector('[data-page="students"]').classList.add('active');
+    initPage();
+  }
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  let _allStudents = [];
+  let _classes     = [];
+  let _csvRows     = [];
+
+  async function initPage() {
+    try {
+      const cr = await Api.Classes.list();
+      _classes = cr.data || [];
+      const classOpts = _classes.map(c => `<option value="${c.class_id}">${escHtml(c.class_name)}</option>`).join('');
+      document.getElementById('sel-class').insertAdjacentHTML('beforeend', classOpts);
+      document.getElementById('inp-student-class').innerHTML =
+        '<option value="">เลือกชั้น</option>' + classOpts;
+    } catch(e) { UI.toast('โหลดชั้นเรียนไม่สำเร็จ','error'); }
+  }
+
+  async function loadStudents() {
+    const classId = document.getElementById('sel-class').value;
+    if (!classId) {
+      document.getElementById('student-table-wrap').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">👥</div><p>กรุณาเลือกชั้นเรียน</p></div>';
+      document.getElementById('student-count').textContent = '';
+      return;
+    }
+    document.getElementById('student-table-wrap').innerHTML =
+      '<div class="d-flex justify-content-center py-5"><div class="spinner"></div></div>';
+    try {
+      const res = await Api.Students.list(classId);
+      _allStudents = res.data || [];
+      filterStudents();
+    } catch(e) {
+      document.getElementById('student-table-wrap').innerHTML =
+        '<div class="alert-ct warning">⚠️ โหลดข้อมูลไม่สำเร็จ</div>';
+    }
+  }
+
+  function filterStudents() {
+    const q = (document.getElementById('inp-search').value || '').toLowerCase();
+    const filtered = q
+      ? _allStudents.filter(s =>
+          (s.fullname||'').toLowerCase().includes(q) ||
+          (s.student_code||'').toLowerCase().includes(q))
+      : _allStudents;
+    renderStudentTable(filtered);
+  }
+
+  function renderStudentTable(students) {
+    document.getElementById('student-count').textContent =
+      `แสดง ${students.length} / ${_allStudents.length} คน`;
+    if (!students.length) {
+      document.getElementById('student-table-wrap').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">🔍</div><p>ไม่พบนักเรียนที่ค้นหา</p></div>';
+      return;
+    }
+    const trs = students.map((s, i) => {
+      const statusBadge = s.status === 'ACTIVE'
+        ? '<span class="badge" style="background:#f0fdf4;color:#065f46;border:1px solid #bbf7d0;border-radius:20px;padding:3px 10px;font-size:12px">✅ Active</span>'
+        : '<span class="badge" style="background:#fff5f5;color:#991b1b;border:1px solid #fecaca;border-radius:20px;padding:3px 10px;font-size:12px">❌ Inactive</span>';
+      return `<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td style="color:var(--muted);font-size:13px">${escHtml(s.student_code||'-')}</td>
+        <td style="font-weight:500">${escHtml(s.prefix)}${escHtml(s.fullname)}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-secondary" onclick='editStudent(${JSON.stringify(s).replace(/'/g,"&#39;")})' title="แก้ไข"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="removeStudent('${s.student_id}')" title="${s.status==='ACTIVE'?'ปิดใช้งาน':'เปิดใช้งาน'}">
+              <i class="bi bi-${s.status==='ACTIVE'?'person-x':'person-check'}"></i>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('student-table-wrap').innerHTML = `
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" style="font-size:14px">
+          <thead class="table-light"><tr>
+            <th>#</th><th>เลขประจำตัว</th><th>ชื่อ-นามสกุล</th><th>สถานะ</th><th>จัดการ</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function openStudentModal(isEdit = false) {
+    document.getElementById('student-modal-title').textContent = isEdit ? 'แก้ไขข้อมูลนักเรียน' : 'เพิ่มนักเรียน';
+    if (!isEdit) {
+      document.getElementById('edit-student-id').value    = '';
+      document.getElementById('inp-prefix').value         = 'ด.ช.';
+      document.getElementById('inp-fullname').value       = '';
+      document.getElementById('inp-student-code').value   = '';
+      document.getElementById('inp-student-class').value  = document.getElementById('sel-class').value;
+      document.getElementById('inp-student-status').value = 'ACTIVE';
+    }
+    UI.modal('studentModal', true);
+  }
+
+  function editStudent(s) {
+    openStudentModal(true);
+    document.getElementById('edit-student-id').value    = s.student_id;
+    document.getElementById('inp-prefix').value         = s.prefix || 'ด.ช.';
+    document.getElementById('inp-fullname').value       = s.fullname || '';
+    document.getElementById('inp-student-code').value   = s.student_code || '';
+    document.getElementById('inp-student-class').value  = s.class_id || '';
+    document.getElementById('inp-student-status').value = s.status || 'ACTIVE';
+  }
+
+  async function saveStudent() {
+    const sid      = document.getElementById('edit-student-id').value;
+    const fullname = document.getElementById('inp-fullname').value.trim();
+    const classId  = document.getElementById('inp-student-class').value;
+    if (!fullname || !classId) { UI.toast('กรุณากรอกชื่อและเลือกชั้น','warning'); return; }
+
+    const payload = {
+      student_id:   sid || undefined,
+      prefix:       document.getElementById('inp-prefix').value,
+      fullname,
+      student_code: document.getElementById('inp-student-code').value.trim(),
+      class_id:     classId,
+      status:       document.getElementById('inp-student-status').value,
+    };
+
+    UI.loading(true, 'กำลังบันทึก...');
+    try {
+      await (sid ? Api.Students.update(payload) : Api.Students.add(payload));
+      UI.toast(sid ? 'อัพเดตข้อมูลเรียบร้อย ✅' : 'เพิ่มนักเรียนเรียบร้อย ✅', 'success');
+      UI.modal('studentModal', false);
+      loadStudents();
+    } catch(e) {
+      UI.toast('บันทึกไม่สำเร็จ', 'error');
+    } finally { UI.loading(false); }
+  }
+
+  async function removeStudent(studentId) {
+    const s = _allStudents.find(x => x.student_id === studentId);
+    const action = s?.status === 'ACTIVE' ? 'ปิดใช้งาน' : 'เปิดใช้งาน';
+    const ok = await UI.confirm(`ต้องการ${action}นักเรียนคนนี้ใช่หรือไม่?`);
+    if (!ok) return;
+    UI.loading(true);
+    try {
+      await Api.Students.remove(studentId);
+      UI.toast(`${action}เรียบร้อยแล้ว`, 'success');
+      loadStudents();
+    } catch(e) { UI.toast('เกิดข้อผิดพลาด','error'); }
+    finally { UI.loading(false); }
+  }
+
+  function openImportModal() { _csvRows=[]; document.getElementById('csv-preview').innerHTML=''; UI.modal('importModal',true); }
+
+  function previewCSV(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = e.target.result.split('\n').filter(l=>l.trim());
+      _csvRows = lines.slice(1).map(l => {
+        const cols = l.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+        return { student_code:cols[0], prefix:cols[1], fullname:cols[2], class_id:cols[3], status:cols[4]||'ACTIVE' };
+      }).filter(r=>r.fullname);
+
+      document.getElementById('csv-preview').innerHTML = `
+        <div class="alert-ct success mb-2">✅ พบ ${_csvRows.length} รายการ</div>
+        <div class="table-responsive" style="font-size:12.5px">
+          <table class="table table-sm">
+            <thead><tr><th>เลขประจำตัว</th><th>ชื่อ</th><th>ชั้น</th></tr></thead>
+            <tbody>${_csvRows.slice(0,5).map(r=>`<tr><td>${escHtml(r.student_code)}</td><td>${escHtml(r.prefix)}${escHtml(r.fullname)}</td><td>${escHtml(r.class_id)}</td></tr>`).join('')}</tbody>
+          </table>
+          ${_csvRows.length>5?`<small class="text-muted">และอีก ${_csvRows.length-5} รายการ...</small>`:''}
+        </div>`;
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  async function importCSV() {
+    if (!_csvRows.length) { UI.toast('ยังไม่มีข้อมูลที่โหลด','warning'); return; }
+    UI.loading(true, `กำลัง Import ${_csvRows.length} รายการ...`);
+    try {
+      await Api.Students.importCSV(_csvRows);
+      UI.toast(`Import เสร็จสิ้น ${_csvRows.length} รายการ ✅`, 'success');
+      UI.modal('importModal', false);
+      loadStudents();
+    } catch(e) { UI.toast('Import ไม่สำเร็จ','error'); }
+    finally { UI.loading(false); }
+  }
+
+  async function exportStudents() {
+    const classId = document.getElementById('sel-class').value;
+    if (!classId) { UI.toast('กรุณาเลือกชั้นเรียนก่อน Export','warning'); return; }
+    UI.loading(true,'กำลัง Export...');
+    try {
+      const res = await Api.get('/students/export', { class_id: classId });
+      if (res.data?.url) window.open(res.data.url, '_blank');
+    } catch(e) { UI.toast('Export ไม่สำเร็จ','error'); }
+    finally { UI.loading(false); }
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+</script>
+</body>
+</html>

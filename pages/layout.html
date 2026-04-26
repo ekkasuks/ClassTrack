@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClassTrack</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="../assets/css/main.css" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-icon">📚</span>
+    <span class="brand-name">Class<b>Track</b></span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="user-avatar">ค</div>
+    <div>
+      <div class="user-name" id="user-name">กำลังโหลด...</div>
+      <div class="user-role" id="user-role"></div>
+    </div>
+  </div>
+  <ul class="sidebar-nav">
+    <li><a href="dashboard.html" data-page="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+    <li><a href="assignments.html" data-page="assignments"><i class="bi bi-journal-plus"></i> มอบหมายงาน</a></li>
+    <li><a href="checkwork.html" data-page="checkwork"><i class="bi bi-calendar-check"></i> ตรวจงาน</a></li>
+    <li><a href="students.html" data-page="students"><i class="bi bi-people"></i> จัดการนักเรียน</a></li>
+    <li><a href="reports.html" data-page="reports"><i class="bi bi-bar-chart-line"></i> รายงานผล</a></li>
+    <li class="admin-only"><a href="classes.html" data-page="classes"><i class="bi bi-building"></i> จัดการชั้นเรียน</a></li>
+    <li class="admin-only"><a href="settings.html" data-page="settings"><i class="bi bi-gear"></i> ตั้งค่าระบบ</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="Auth.logout()"><i class="bi bi-box-arrow-left"></i> ออกจากระบบ</button>
+  </div>
+</nav>
+
+<!-- ── Mobile topbar ── -->
+<header id="topbar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+  <span class="topbar-title">ClassTrack</span>
+  <span></span>
+</header>
+
+<!-- ── Main content slot ── -->
+<main id="main-content">
+  <!-- หน้าต่างๆ inject ที่นี่ -->
+</main>
+
+<!-- ── Global Loading ── -->
+<div id="global-loading" style="display:none;position:fixed;inset:0;z-index:8888;
+  background:rgba(255,255,255,0.88);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <div class="spinner"></div>
+  <div id="loading-text" style="font-size:15px;color:#64748b;font-family:Sarabun,sans-serif">กำลังโหลด...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script>
+  // ── Init layout ──
+  (function() {
+    const user = Auth.requireAuth();
+    if (!user) return;
+    UI.renderUserInfo();
+
+    // Avatar initial
+    const av = document.getElementById('user-avatar');
+    if (av && user.name) av.textContent = user.name.charAt(0);
+
+    // ซ่อน admin-only ถ้าไม่ใช่ admin
+    if (user.role !== 'ADMIN') {
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    }
+
+    // Active nav link
+    const page = location.pathname.split('/').pop().replace('.html','');
+    document.querySelectorAll('.sidebar-nav a').forEach(a => {
+      if (a.dataset.page === page) a.classList.add('active');
+    });
+  })();
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+</script>
+</body>
+</html>
