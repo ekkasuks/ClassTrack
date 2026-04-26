@@ -1,63 +1,77 @@
 /**
  * @fileoverview API Service Layer — ทุก HTTP call ผ่านที่นี่
+ * @description Google Apps Script Web App มีข้อจำกัด:
+ *   - POST ต้องใช้ Content-Type: text/plain (ไม่รองรับ application/json ด้วย CORS)
+ *   - ไม่รองรับ custom headers เช่น Authorization → ส่ง token ใน body/param แทน
+ *   - redirect follow อัตโนมัติ (Apps Script redirect 302 ก่อนตอบ JSON)
  * @module Api
  */
 
 const Api = (() => {
+
   /**
-   * Generic fetch wrapper พร้อม auth header
-   * @param {string} endpoint - เช่น '/students'
-   * @param {Object} options - fetch options
+   * POST ไปยัง Google Apps Script
+   * Apps Script ต้องการ Content-Type: text/plain เพื่อข้าม CORS preflight
+   * และรับ body เป็น JSON string ผ่าน e.postData.contents
+   * @param {string} endpoint - เช่น '/auth/verify'
+   * @param {Object} body
    * @returns {Promise<Object>}
    */
-  async function _request(endpoint, options = {}) {
-    const token = Auth.getToken();
-    const url = `${CONFIG.API_BASE_URL}?action=${endpoint.replace(/^\//, '')}`;
+  async function post(endpoint, body) {
+    const token  = Auth.getToken();
+    const action = endpoint.replace(/^\//, '').replace(/\//g, '_');
+    const url    = `${CONFIG.API_BASE_URL}?action=${action}`;
 
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      ...options.headers,
-    };
+    // รวม token เข้าใน body เสมอ (เพราะ custom header ไม่ผ่าน CORS)
+    const payload = { ...body, token };
 
     try {
-      const res = await fetch(url, { ...options, headers, mode: 'cors' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      const res = await fetch(url, {
+        method:   'POST',
+        // ใช้ text/plain เพื่อหลีกเลี่ยง CORS preflight ที่ Apps Script ไม่รองรับ
+        headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
+        body:     JSON.stringify(payload),
+        redirect: 'follow',
+      });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        console.error('[API POST] Non-JSON response:', text.slice(0, 300));
+        throw new Error('Server returned non-JSON response');
+      }
     } catch (err) {
-      console.error(`[API] ${endpoint}`, err);
+      console.error(`[API POST] ${endpoint}`, err);
       throw err;
     }
   }
 
   /**
-   * POST request
-   * @param {string} endpoint
-   * @param {Object} body
-   */
-  async function post(endpoint, body) {
-    return _request(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  }
-
-  /**
-   * GET request พร้อม query params
+   * GET ไปยัง Google Apps Script
+   * ส่ง token เป็น query parameter
    * @param {string} endpoint
    * @param {Object} [params]
+   * @returns {Promise<Object>}
    */
   async function get(endpoint, params = {}) {
-    const qs = new URLSearchParams({ action: endpoint.replace(/^\//, ''), ...params }).toString();
-    const token = Auth.getToken();
+    const token  = Auth.getToken();
+    const action = endpoint.replace(/^\//, '').replace(/\//g, '_');
+    const qs     = new URLSearchParams({
+      action,
+      ...(token ? { token } : {}),
+      ...params,
+    }).toString();
     const url = `${CONFIG.API_BASE_URL}?${qs}`;
+
     try {
-      const res = await fetch(url, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        mode: 'cors',
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      const res  = await fetch(url, { redirect: 'follow' });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        console.error('[API GET] Non-JSON response:', text.slice(0, 300));
+        throw new Error('Server returned non-JSON response');
+      }
     } catch (err) {
       console.error(`[API GET] ${endpoint}`, err);
       throw err;
