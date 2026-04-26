@@ -5,10 +5,10 @@
 
 const CONFIG = {
   /** @type {string} URL ของ Google Apps Script Web App */
-  API_BASE_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+  API_BASE_URL: 'https://script.google.com/macros/s/AKfycbz6zps1CLfGME1VLuOQOu6bNKCYoXPO0JOzjfTKOwcAbhufMJWMPkgbC5FXjUfGmaJA/exec',
 
   /** @type {string} Google OAuth Client ID จาก Google Cloud Console */
-  GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+  GOOGLE_CLIENT_ID: '927009801291-3b5d1evkvhjjt1oq3sgor2gja8mmpa05.apps.googleusercontent.com',
 
   /** @type {number} Token expiry buffer (ms) */
   TOKEN_EXPIRY_BUFFER: 5 * 60 * 1000,
