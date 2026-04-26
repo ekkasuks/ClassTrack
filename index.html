@@ -136,6 +136,18 @@
       </svg>
       เข้าสู่ระบบด้วย Google Account
     </button>
+
+    <!-- Error message box -->
+    <div id="error-msg" style="display:none;margin-top:16px;padding:14px 16px;
+         background:#fff5f5;border:1px solid #fecaca;border-radius:12px;
+         color:#991b1b;font-size:13.5px;line-height:1.6;word-break:break-word"></div>
+
+    <!-- Debug helper: ทดสอบการเชื่อมต่อ Apps Script -->
+    <div style="margin-top:12px;text-align:center">
+      <button onclick="testConnection()" style="background:none;border:none;
+        color:#94a3b8;font-size:12px;cursor:pointer;text-decoration:underline;
+        font-family:Sarabun,sans-serif">🔧 ทดสอบการเชื่อมต่อ</button>
+    </div>
     <div class="info-box">
       🔒 ระบบนี้ใช้ <strong>Google OAuth</strong> — เฉพาะบัญชีที่ได้รับอนุญาตเท่านั้น<br/>
       หากเข้าไม่ได้ กรุณาติดต่อผู้ดูแลระบบ
@@ -152,5 +164,42 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="assets/js/config.js"></script>
   <script src="assets/js/auth.js"></script>
+  <script>
+    /**
+     * ทดสอบการเชื่อมต่อ Apps Script โดยตรง
+     * กด "ทดสอบการเชื่อมต่อ" แล้วดูผลใน error-msg box
+     */
+    async function testConnection() {
+      const el = document.getElementById('error-msg');
+      el.style.display = 'block';
+      el.style.background = '#eff6ff';
+      el.style.borderColor = '#bfdbfe';
+      el.style.color = '#1e429f';
+      el.textContent = '⏳ กำลังทดสอบ...';
+
+      if (!CONFIG.API_BASE_URL || CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID')) {
+        el.style.background = '#fff5f5'; el.style.borderColor = '#fecaca'; el.style.color = '#991b1b';
+        el.textContent = '❌ ยังไม่ได้ตั้งค่า API_BASE_URL ใน assets/js/config.js';
+        return;
+      }
+      try {
+        const url = CONFIG.API_BASE_URL + '?action=health';
+        const res  = await fetch(url, { redirect: 'follow' });
+        const text = await res.text();
+        const json = JSON.parse(text);
+        if (json.data && json.data.status === 'ok') {
+          el.style.background = '#f0fdf4'; el.style.borderColor = '#bbf7d0'; el.style.color = '#065f46';
+          el.textContent = '✅ เชื่อมต่อ Apps Script ได้แล้ว! — กดปุ่ม Login ได้เลย';
+        } else {
+          el.style.background = '#fffbeb'; el.style.borderColor = '#fde68a'; el.style.color = '#92400e';
+          el.textContent = '⚠️ Apps Script ตอบกลับแต่ข้อมูลผิดปกติ: ' + text.slice(0,100);
+        }
+      } catch(e) {
+        el.style.background = '#fff5f5'; el.style.borderColor = '#fecaca'; el.style.color = '#991b1b';
+        el.textContent = '❌ เชื่อมต่อไม่ได้: ' + e.message
+          + '\n\n→ ตรวจสอบ: 1) API_BASE_URL ถูกต้อง? 2) Apps Script Deploy แล้ว? 3) "Who has access" = Anyone?';
+      }
+    }
+  </script>
 </body>
 </html>
