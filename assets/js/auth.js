@@ -35,7 +35,7 @@ const Auth = (() => {
   async function _handleTokenResponse(resp) {
     if (resp.error) {
       console.error('Token error:', resp.error);
-      _showError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      _showError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ' + resp.error);
       return;
     }
     _accessToken = resp.access_token;
@@ -43,17 +43,29 @@ const Auth = (() => {
 
     _showLoading(true);
     try {
+      // เก็บ token ก่อน เพื่อให้ Api.post() ใช้ Auth.getToken() ได้
+      sessionStorage.setItem('ct_token', _accessToken);
+
       const result = await Api.post('/auth/verify', { token: _accessToken });
-      if (result.success) {
+
+      if (result && result.success) {
         _user = result.data;
         sessionStorage.setItem('ct_user', JSON.stringify(_user));
-        sessionStorage.setItem('ct_token', _accessToken);
+        // Redirect ไป pages/ ซึ่งอยู่ใน subfolder เดียวกับ index.html
         window.location.href = 'pages/dashboard.html';
       } else {
-        _showError(result.message || 'ไม่มีสิทธิ์เข้าใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
+        // ล้าง token ออกถ้าไม่มีสิทธิ์
+        sessionStorage.removeItem('ct_token');
+        _showError((result && result.message) || 'ไม่มีสิทธิ์เข้าใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
       }
     } catch (e) {
-      _showError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+      sessionStorage.removeItem('ct_token');
+      console.error('Auth error:', e);
+      // แยกข้อความ error ให้ชัดเจน
+      const msg = e.message.includes('non-JSON')
+        ? 'Apps Script URL ไม่ถูกต้อง หรือยังไม่ได้ Deploy — กรุณาตรวจ config.js'
+        : 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (ตรวจ Console สำหรับรายละเอียด)';
+      _showError(msg);
     } finally {
       _showLoading(false);
     }
@@ -91,12 +103,16 @@ const Auth = (() => {
 
   /**
    * ตรวจว่า login อยู่หรือเปล่า ถ้าไม่ redirect ไป index
+   * ใช้ relative path เพื่อให้ทำงานได้บน GitHub Pages subdirectory
    */
   function requireAuth() {
     const token = getToken();
-    const user = getUser();
+    const user  = getUser();
     if (!token || !user) {
-      window.location.href = '/index.html';
+      // หา root โดย traverse ขึ้นไปจาก path ปัจจุบัน
+      const depth = location.pathname.split('/').filter(Boolean).length;
+      const back  = depth > 1 ? '../'.repeat(depth - 1) : './';
+      window.location.href = back + 'index.html';
       return null;
     }
     return user;
