@@ -2,155 +2,145 @@
  * @fileoverview ClassTrack — Google Apps Script Backend
  * @description REST API สำหรับ Web App บน GitHub Pages
  *              ทุก request ผ่าน doGet / doPost แล้ว route ไปยัง handler
- * @version 1.0.0
+ * @version 1.1.0
  */
 
-// ══════════════════════════════════════════════════════════
-// CONFIGURATION — แก้ไขค่าเหล่านี้ก่อน deploy
-// ══════════════════════════════════════════════════════════
 const GAS_CONFIG = {
-  /** @type {string} ID ของ Google Spreadsheet (ดูจาก URL) */
-  SPREADSHEET_ID: 'YOUR_SPREADSHEET_ID_HERE',
-
-  /** @type {string} Google Drive Folder ID สำหรับเก็บรูป */
+  SPREADSHEET_ID:  'YOUR_SPREADSHEET_ID_HERE',
   UPLOAD_FOLDER_ID: 'YOUR_DRIVE_FOLDER_ID_HERE',
-
-  /** @type {string} Cache duration in seconds (6 ชั่วโมง) */
-  CACHE_TTL: 21600,
-
-  /** @type {string} Allowed origins (GitHub Pages URL ของคุณ) */
-  ALLOWED_ORIGIN: 'https://YOUR_USERNAME.github.io',
+  CACHE_TTL:       21600,
+  ALLOWED_ORIGIN:  'https://YOUR_USERNAME.github.io',
 };
 
 // ══════════════════════════════════════════════════════════
-// CORS HEADERS
+// RESPONSE HELPERS
 // ══════════════════════════════════════════════════════════
 
-/**
- * สร้าง response พร้อม CORS headers
- * @param {Object} data
- * @param {number} [statusCode=200]
- * @returns {GoogleAppsScript.Content.TextOutput}
- */
 function _jsonResponse(data) {
-  const output = ContentService
+  return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
-  return output;
 }
 
-/**
- * สร้าง success response
- * @param {*} data
- * @param {string} [message]
- */
-function _ok(data, message = 'success') {
-  return _jsonResponse({ success: true, message, data });
+function _ok(data, message) {
+  return _jsonResponse({ success: true, message: message || 'success', data: data });
 }
 
-/**
- * สร้าง error response
- * @param {string} message
- * @param {number} [code=400]
- */
-function _err(message, code = 400) {
-  return _jsonResponse({ success: false, message, code, data: null });
+function _err(message, code) {
+  return _jsonResponse({ success: false, message: message, code: code || 400, data: null });
 }
 
 // ══════════════════════════════════════════════════════════
-// ROUTER — doGet / doPost
+// PARSE ACTION — รองรับทั้ง slash และ underscore
+// เช่น "auth/verify" → "auth_verify", "auth_verify" → "auth_verify"
 // ══════════════════════════════════════════════════════════
+function _parseAction(raw) {
+  return (raw || '').replace(/\//g, '_').toLowerCase();
+}
 
-/**
- * HTTP GET handler — อ่านข้อมูล
- * @param {GoogleAppsScript.Events.DoGet} e
- */
+// ══════════════════════════════════════════════════════════
+// doGet — อ่านข้อมูล
+// ══════════════════════════════════════════════════════════
 function doGet(e) {
   try {
-    const action = (e.parameter.action || '').replace(/\//g, '_');
+    const action = _parseAction(e.parameter.action);
     const params = e.parameter;
+    const token  = params.token || '';
 
-    // ตรวจ token ก่อนทุก request (ยกเว้น health check)
     if (action !== 'health') {
-      const authResult = AuthService.verifyToken(params.token || params.Authorization);
-      if (!authResult.valid) return _err('Unauthorized: ' + authResult.reason, 401);
+      const auth = AuthService.verifyToken(token);
+      if (!auth.valid) return _err('Unauthorized: ' + auth.reason, 401);
     }
 
     const routes = {
-      'health':                 () => _ok({ status: 'ok', time: new Date().toISOString() }),
-      'auth_verify':            () => _ok(AuthService.verifyAndGetUser(params.token)),
-      'config':                 () => _ok(ConfigService.getAll()),
-      'classes':                () => _ok(ClassService.list()),
-      'students':               () => _ok(StudentService.list(params.class_id)),
-      'students_export':        () => _ok(StudentService.exportUrl(params.class_id)),
-      'subjects':               () => _ok(SubjectService.list()),
-      'assignments':            () => _ok(AssignmentService.list(params)),
-      'assignment_byDate':      () => _ok(AssignmentService.byDate(params.due)),
-      'assignment_detail':      () => _ok(AssignmentService.detail(params.assign_id)),
-      'submission_list':        () => _ok(SubmissionService.list(params.assign_id)),
-      'report_summary':         () => _ok(ReportService.summary(params)),
-      'report_student':         () => _ok(ReportService.byStudent(params)),
-      'report_exportExcel':     () => _ok(ReportService.exportExcel(params)),
-      'report_exportPDF':       () => _ok(ReportService.exportPDF(params)),
-      'admins':                 () => _ok(AdminService.list()),
-      'audit':                  () => _ok(AuditService.recent(parseInt(params.limit) || 20)),
+      'health':              () => _ok({ status: 'ok', time: new Date().toISOString() }),
+      'config':              () => _ok(ConfigService.getAll()),
+      'classes':             () => _ok(ClassService.list()),
+      'subjects':            () => _ok(SubjectService.list()),
+      'students':            () => _ok(StudentService.list(params.class_id)),
+      'students_export':     () => _ok(StudentService.exportUrl(params.class_id)),
+      'assignments':         () => _ok(AssignmentService.list(params)),
+      'assignment_bydate':   () => _ok(AssignmentService.byDate(params.due)),
+      'assignment_detail':   () => _ok(AssignmentService.detail(params.assign_id)),
+      'submission_list':     () => _ok(SubmissionService.list(params.assign_id)),
+      'report_summary':      () => _ok(ReportService.summary(params)),
+      'report_student':      () => _ok(ReportService.byStudent(params)),
+      'report_exportexcel':  () => _ok(ReportService.exportExcel(params)),
+      'report_exportpdf':    () => _ok(ReportService.exportPDF(params)),
+      'admins':              () => _ok(AdminService.list()),
+      'audit':               () => _ok(AuditService.recent(parseInt(params.limit) || 20)),
     };
 
     const handler = routes[action];
-    if (!handler) return _err(`Unknown action: ${action}`, 404);
+    if (!handler) return _err('Unknown action: ' + action, 404);
     return handler();
 
   } catch (err) {
-    Logger.log('doGet error: ' + err.message);
-    return _err('Internal Server Error: ' + err.message, 500);
+    Logger.log('[doGet] ' + err.message + '\n' + err.stack);
+    return _err('Server Error: ' + err.message, 500);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// doPost — เขียนข้อมูล
+// รองรับ Content-Type: text/plain (JSON string ใน postData.contents)
+// ══════════════════════════════════════════════════════════
+function doPost(e) {
+  try {
+    // Apps Script รับ JSON body ผ่าน e.postData.contents
+    var rawBody = '';
+    try { rawBody = e.postData.contents || '{}'; } catch(_) { rawBody = '{}'; }
+
+    var body = {};
+    try { body = JSON.parse(rawBody); } catch(parseErr) {
+      Logger.log('[doPost] JSON parse error: ' + parseErr.message + ' | raw: ' + rawBody.slice(0,200));
+      return _err('Invalid JSON body: ' + parseErr.message, 400);
+    }
+
+    const action    = _parseAction(e.parameter.action || body._action || '');
+    const token     = body.token || e.parameter.token || '';
+    const userEmail = _getEmailFromToken(token, action);
+
+    const routes = {
+      'auth_verify':           () => _ok(AuthService.verifyAndGetUser(token)),
+      'config_update':         () => { AdminService.requireAdmin(userEmail); return _ok(ConfigService.update(body, userEmail)); },
+      'classes_add':           () => { AdminService.requireAdmin(userEmail); return _ok(ClassService.add(body, userEmail)); },
+      'classes_update':        () => { AdminService.requireAdmin(userEmail); return _ok(ClassService.update(body, userEmail)); },
+      'students_add':          () => _ok(StudentService.add(body, userEmail)),
+      'students_update':       () => _ok(StudentService.update(body, userEmail)),
+      'students_delete':       () => _ok(StudentService.softDelete(body.student_id, userEmail)),
+      'students_import':       () => _ok(StudentService.importRows(body.rows, userEmail)),
+      'assignment_create':     () => _ok(AssignmentService.create(body, userEmail)),
+      'assignment_update':     () => _ok(AssignmentService.update(body, userEmail)),
+      'assignment_delete':     () => _ok(AssignmentService.remove(body.assign_id, userEmail)),
+      'assignment_copy':       () => _ok(AssignmentService.copy(body.assign_id, userEmail)),
+      'submission_updateone':  () => _ok(SubmissionService.updateOne(body, userEmail)),
+      'submission_bulkupdate': () => _ok(SubmissionService.bulkUpdate(body, userEmail)),
+      'upload_image':          () => _ok(UploadService.uploadImage(body, userEmail)),
+      'admins_add':            () => { AdminService.requireAdmin(userEmail); return _ok(AdminService.add(body, userEmail)); },
+      'admins_remove':         () => { AdminService.requireAdmin(userEmail); return _ok(AdminService.remove(body.email, userEmail)); },
+      'subjects_add':          () => { AdminService.requireAdmin(userEmail); return _ok(SubjectService.add(body, userEmail)); },
+    };
+
+    const handler = routes[action];
+    if (!handler) return _err('Unknown action: ' + action, 404);
+    return handler();
+
+  } catch (err) {
+    Logger.log('[doPost] ' + err.message + '\n' + err.stack);
+    return _err('Server Error: ' + err.message, 500);
   }
 }
 
 /**
- * HTTP POST handler — เขียนข้อมูล
- * @param {GoogleAppsScript.Events.DoPost} e
+ * ดึง email จาก token — ถ้าเป็น auth_verify ไม่ต้องตรวจ
+ * @param {string} token
+ * @param {string} action
+ * @returns {string}
  */
-function doPost(e) {
-  try {
-    const action = (e.parameter.action || '').replace(/\//g, '_');
-    const body   = JSON.parse(e.postData.contents || '{}');
-
-    // ตรวจ token
-    const token = body.token || e.parameter.token;
-    const authResult = AuthService.verifyToken(token);
-    if (action !== 'auth_verify' && !authResult.valid) {
-      return _err('Unauthorized: ' + authResult.reason, 401);
-    }
-
-    const userEmail = authResult.email || '';
-
-    const routes = {
-      'auth_verify':            () => _ok(AuthService.verifyAndGetUser(body.token)),
-      'config_update':          () => { AdminService.requireAdmin(userEmail); return _ok(ConfigService.update(body, userEmail)); },
-      'classes_add':            () => { AdminService.requireAdmin(userEmail); return _ok(ClassService.add(body, userEmail)); },
-      'classes_update':         () => { AdminService.requireAdmin(userEmail); return _ok(ClassService.update(body, userEmail)); },
-      'students_add':           () => _ok(StudentService.add(body, userEmail)),
-      'students_update':        () => _ok(StudentService.update(body, userEmail)),
-      'students_delete':        () => _ok(StudentService.softDelete(body.student_id, userEmail)),
-      'students_import':        () => _ok(StudentService.importRows(body.rows, userEmail)),
-      'assignment_create':      () => _ok(AssignmentService.create(body, userEmail)),
-      'assignment_update':      () => _ok(AssignmentService.update(body, userEmail)),
-      'assignment_delete':      () => _ok(AssignmentService.remove(body.assign_id, userEmail)),
-      'assignment_copy':        () => _ok(AssignmentService.copy(body.assign_id, userEmail)),
-      'submission_updateOne':   () => _ok(SubmissionService.updateOne(body, userEmail)),
-      'submission_bulkUpdate':  () => _ok(SubmissionService.bulkUpdate(body, userEmail)),
-      'upload_image':           () => _ok(UploadService.uploadImage(body, userEmail)),
-      'admins_add':             () => { AdminService.requireAdmin(userEmail); return _ok(AdminService.add(body, userEmail)); },
-      'admins_remove':          () => { AdminService.requireAdmin(userEmail); return _ok(AdminService.remove(body.email, userEmail)); },
-      'subjects_add':           () => { AdminService.requireAdmin(userEmail); return _ok(SubjectService.add(body, userEmail)); },
-    };
-
-    const handler = routes[action];
-    if (!handler) return _err(`Unknown action: ${action}`, 404);
-    return handler();
-
-  } catch (err) {
-    Logger.log('doPost error: ' + err.message + '\n' + err.stack);
-    return _err('Internal Server Error: ' + err.message, 500);
-  }
+function _getEmailFromToken(token, action) {
+  if (action === 'auth_verify') return '';
+  const auth = AuthService.verifyToken(token);
+  if (!auth.valid) throw new Error('Unauthorized: ' + auth.reason);
+  return auth.email || '';
 }
