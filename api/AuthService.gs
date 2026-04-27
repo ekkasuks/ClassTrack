@@ -4,7 +4,7 @@
 
 const AuthService = (() => {
 
-  const TOKEN_INFO_URL = 'https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=';
+  const TOKEN_INFO_URL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=';
 
   /**
    * ตรวจสอบ token กับ Google API
