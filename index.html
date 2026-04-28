@@ -8,112 +8,86 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --primary: #1a56db;
-      --primary-dark: #1e429f;
-      --accent: #f59e0b;
-      --bg: #f0f4ff;
-      --surface: #ffffff;
-      --text: #1e293b;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --success: #10b981;
-      --danger: #ef4444;
-      --warning: #f59e0b;
+      --primary: #1a56db; --primary-dark: #1e429f;
+      --bg: #f0f4ff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: 'Sarabun', sans-serif;
-      background: var(--bg);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
+      font-family:'Sarabun',sans-serif; background:var(--bg);
+      min-height:100vh; display:flex; align-items:center;
+      justify-content:center; overflow:hidden; position:relative;
     }
     .bg-pattern {
-      position: fixed; inset: 0; z-index: 0;
+      position:fixed; inset:0; z-index:0;
       background:
-        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26,86,219,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(245,158,11,0.10) 0%, transparent 60%),
-        linear-gradient(160deg, #e8f0ff 0%, #f0f4ff 50%, #fffbeb 100%);
+        radial-gradient(ellipse 80% 60% at 20% 10%,rgba(26,86,219,.12) 0%,transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 90%,rgba(245,158,11,.10) 0%,transparent 60%),
+        linear-gradient(160deg,#e8f0ff 0%,#f0f4ff 50%,#fffbeb 100%);
     }
     .dots {
-      position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(26,86,219,0.10) 1.5px, transparent 1.5px);
-      background-size: 30px 30px;
+      position:fixed; inset:0; z-index:0;
+      background-image:radial-gradient(circle,rgba(26,86,219,.10) 1.5px,transparent 1.5px);
+      background-size:30px 30px;
     }
     .login-card {
-      position: relative; z-index: 1;
-      background: white;
-      border-radius: 24px;
-      padding: 52px 48px;
-      width: 100%; max-width: 440px;
-      box-shadow: 0 20px 60px rgba(26,86,219,0.13), 0 2px 8px rgba(0,0,0,0.06);
-      border: 1px solid rgba(255,255,255,0.8);
-      animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1);
+      position:relative; z-index:1; background:white;
+      border-radius:24px; padding:52px 48px;
+      width:100%; max-width:440px;
+      box-shadow:0 20px 60px rgba(26,86,219,.13),0 2px 8px rgba(0,0,0,.06);
+      animation:slideUp .6s cubic-bezier(.16,1,.3,1);
     }
-    @keyframes slideUp {
-      from { opacity:0; transform: translateY(30px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
-    .logo-area { text-align: center; margin-bottom: 36px; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    .logo-area { text-align:center; margin-bottom:36px; }
     .logo-icon {
-      width: 72px; height: 72px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      border-radius: 20px;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 32px; margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(26,86,219,0.3);
+      width:72px; height:72px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      border-radius:20px; display:inline-flex; align-items:center;
+      justify-content:center; font-size:32px; margin-bottom:16px;
+      box-shadow:0 8px 24px rgba(26,86,219,.3);
     }
-    .logo-title {
-      font-family: 'Chakra Petch', sans-serif;
-      font-size: 28px; font-weight: 700;
-      color: var(--text); letter-spacing: -0.5px;
-    }
-    .logo-title span { color: var(--primary); }
-    .logo-sub { color: var(--muted); font-size: 14px; margin-top: 6px; }
-    .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+    .logo-title { font-family:'Chakra Petch',sans-serif; font-size:28px; font-weight:700; color:var(--text); }
+    .logo-title span { color:var(--primary); }
+    .logo-sub { color:var(--muted); font-size:14px; margin-top:6px; }
+    .divider { border:none; border-top:1px solid var(--border); margin:28px 0; }
     .btn-google {
-      width: 100%;
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      padding: 14px 20px;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      background: white; cursor: pointer;
-      font-family: 'Sarabun', sans-serif;
-      font-size: 16px; font-weight: 600; color: var(--text);
-      transition: all 0.2s;
-      text-decoration: none;
+      width:100%; display:flex; align-items:center; justify-content:center; gap:12px;
+      padding:14px 20px; border:2px solid var(--border); border-radius:12px;
+      background:white; cursor:pointer; font-family:'Sarabun',sans-serif;
+      font-size:16px; font-weight:600; color:var(--text); transition:all .2s;
     }
-    .btn-google:hover {
-      border-color: var(--primary);
-      box-shadow: 0 4px 16px rgba(26,86,219,0.15);
-      transform: translateY(-1px);
-    }
-    .btn-google svg { flex-shrink: 0; }
+    .btn-google:hover { border-color:var(--primary); box-shadow:0 4px 16px rgba(26,86,219,.15); transform:translateY(-1px); }
+    .btn-google:disabled { opacity:.55; cursor:not-allowed; transform:none; }
     .info-box {
-      background: #f8faff; border: 1px solid #dbeafe;
-      border-radius: 12px; padding: 16px; margin-top: 20px;
-      font-size: 13.5px; color: var(--muted); line-height: 1.6;
+      background:#f8faff; border:1px solid #dbeafe;
+      border-radius:12px; padding:16px; margin-top:20px;
+      font-size:13.5px; color:var(--muted); line-height:1.6;
     }
-    .info-box strong { color: var(--primary); }
-    .footer-note { text-align: center; margin-top: 24px; font-size: 12.5px; color: #94a3b8; }
+    .info-box strong { color:var(--primary); }
+    .footer-note { text-align:center; margin-top:24px; font-size:12.5px; color:#94a3b8; }
+    #msg {
+      display:none; margin-top:14px; padding:13px 16px;
+      border-radius:12px; font-size:13.5px; line-height:1.7;
+      white-space:pre-wrap; word-break:break-word;
+    }
+    .btn-debug {
+      display:block; width:100%; background:none; border:none;
+      color:#94a3b8; font-size:12px; cursor:pointer;
+      text-decoration:underline; font-family:'Sarabun',sans-serif;
+      margin-top:10px; text-align:center;
+    }
     #loading-overlay {
-      display: none; position: fixed; inset: 0; z-index: 999;
-      background: rgba(255,255,255,0.9); backdrop-filter: blur(4px);
-      align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+      display:none; position:fixed; inset:0; z-index:999;
+      background:rgba(255,255,255,.92); backdrop-filter:blur(4px);
+      align-items:center; justify-content:center; flex-direction:column; gap:16px;
     }
-    #loading-overlay.active { display: flex; }
+    #loading-overlay.active { display:flex; }
     .spinner {
-      width: 44px; height: 44px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width:44px; height:44px; border:3px solid var(--border);
+      border-top-color:var(--primary); border-radius:50%;
+      animation:spin .8s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .load-text { font-size: 15px; color: var(--muted); }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .load-text { font-size:15px; color:var(--muted); }
   </style>
 </head>
 <body>
@@ -127,7 +101,8 @@
       <div class="logo-sub">ระบบติดตามการส่งการบ้านและงาน</div>
     </div>
     <hr class="divider" />
-    <button class="btn-google" onclick="handleLogin()">
+
+    <button class="btn-google" id="login-btn" onclick="handleLogin()">
       <svg width="20" height="20" viewBox="0 0 48 48">
         <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.1 6.7 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
         <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.1 6.7 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -137,19 +112,11 @@
       เข้าสู่ระบบด้วย Google Account
     </button>
 
-    <!-- Error message box -->
-    <div id="error-msg" style="display:none;margin-top:16px;padding:14px 16px;
-         background:#fff5f5;border:1px solid #fecaca;border-radius:12px;
-         color:#991b1b;font-size:13.5px;line-height:1.6;word-break:break-word"></div>
+    <div id="msg"></div>
+    <button class="btn-debug" onclick="testConnection()">🔧 ทดสอบการเชื่อมต่อ Apps Script</button>
 
-    <!-- Debug helper: ทดสอบการเชื่อมต่อ Apps Script -->
-    <div style="margin-top:12px;text-align:center">
-      <button onclick="testConnection()" style="background:none;border:none;
-        color:#94a3b8;font-size:12px;cursor:pointer;text-decoration:underline;
-        font-family:Sarabun,sans-serif">🔧 ทดสอบการเชื่อมต่อ</button>
-    </div>
     <div class="info-box">
-      🔒 ระบบนี้ใช้ <strong>Google OAuth</strong> — เฉพาะบัญชีที่ได้รับอนุญาตเท่านั้น<br/>
+      🔒 ใช้ <strong>Google OAuth</strong> — เฉพาะบัญชีที่ได้รับอนุญาตเท่านั้น<br/>
       หากเข้าไม่ได้ กรุณาติดต่อผู้ดูแลระบบ
     </div>
     <p class="footer-note">ClassTrack v1.0 · พัฒนาสำหรับโรงเรียน</p>
@@ -157,49 +124,104 @@
 
   <div id="loading-overlay">
     <div class="spinner"></div>
-    <div class="load-text">กำลังตรวจสอบสิทธิ์...</div>
+    <div class="load-text" id="load-text">กำลังตรวจสอบสิทธิ์...</div>
   </div>
 
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!--
+    ลำดับโหลด Script (ห้ามสลับ):
+    1. config.js  ← ไม่ขึ้นกับใคร
+    2. api.js     ← ต้องการ CONFIG
+    3. auth.js    ← ต้องการ Api + CONFIG
+    4. GIS        ← async ได้ เพราะ auth.js รอมันใน _waitForGIS()
+  -->
   <script src="assets/js/config.js"></script>
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <script>
-    /**
-     * ทดสอบการเชื่อมต่อ Apps Script โดยตรง
-     * กด "ทดสอบการเชื่อมต่อ" แล้วดูผลใน error-msg box
-     */
+    /* ── Login button handler ─────────────────── */
+    function handleLogin() {
+      var btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ กำลังเชื่อมต่อ Google...';
+      hideMsg();
+
+      // รอ GIS โหลดก่อน (async) แล้วค่อย login
+      _waitForGIS(function() {
+        Auth.login();
+        // คืนปุ่มหลัง 4 วิ ในกรณีผู้ใช้ปิด popup
+        setTimeout(function() { resetBtn(); }, 4000);
+      }, function() {
+        resetBtn();
+        showErr('โหลด Google Sign-In ไม่สำเร็จ\n• ตรวจสอบว่าเปิด Internet อยู่\n• GOOGLE_CLIENT_ID ใน config.js ถูกต้องหรือไม่');
+      });
+    }
+
+    function resetBtn() {
+      var btn = document.getElementById('login-btn');
+      if (!btn) return;
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.6 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.1 6.7 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.1 6.7 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.5 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-8H6.4C9.7 35.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.9 2.4-2.5 4.5-4.5 6l6.2 5.2C36.9 40 44 35 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg> เข้าสู่ระบบด้วย Google Account';
+    }
+
+    /* ── รอ GIS โหลด (max 5 วิ) ──────────────── */
+    function _waitForGIS(onReady, onFail) {
+      var tries = 0, max = 50;
+      var timer = setInterval(function() {
+        tries++;
+        if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+          clearInterval(timer);
+          onReady();
+        } else if (tries >= max) {
+          clearInterval(timer);
+          if (onFail) onFail();
+        }
+      }, 100);
+    }
+
+    /* ── testConnection ───────────────────────── */
     async function testConnection() {
-      const el = document.getElementById('error-msg');
-      el.style.display = 'block';
-      el.style.background = '#eff6ff';
-      el.style.borderColor = '#bfdbfe';
-      el.style.color = '#1e429f';
-      el.textContent = '⏳ กำลังทดสอบ...';
+      showInfo('⏳ กำลังทดสอบ...');
 
       if (!CONFIG.API_BASE_URL || CONFIG.API_BASE_URL.includes('YOUR_SCRIPT_ID')) {
-        el.style.background = '#fff5f5'; el.style.borderColor = '#fecaca'; el.style.color = '#991b1b';
-        el.textContent = '❌ ยังไม่ได้ตั้งค่า API_BASE_URL ใน assets/js/config.js';
+        showErr('❌ ยังไม่ได้แก้ไข API_BASE_URL ใน assets/js/config.js\n→ ใส่ URL จาก Apps Script → Deploy → Manage deployments');
         return;
       }
+      if (!CONFIG.GOOGLE_CLIENT_ID || CONFIG.GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
+        showErr('❌ ยังไม่ได้แก้ไข GOOGLE_CLIENT_ID ใน assets/js/config.js\n→ Google Cloud Console → Credentials → OAuth 2.0 Client IDs');
+        return;
+      }
+
       try {
-        const url = CONFIG.API_BASE_URL + '?action=health';
-        const res  = await fetch(url, { redirect: 'follow' });
-        const text = await res.text();
-        const json = JSON.parse(text);
-        if (json.data && json.data.status === 'ok') {
-          el.style.background = '#f0fdf4'; el.style.borderColor = '#bbf7d0'; el.style.color = '#065f46';
-          el.textContent = '✅ เชื่อมต่อ Apps Script ได้แล้ว! — กดปุ่ม Login ได้เลย';
+        var res  = await fetch(CONFIG.API_BASE_URL + '?action=health', { redirect: 'follow' });
+        var text = await res.text();
+
+        if (text.trim().startsWith('<')) {
+          showErr('⚠️ Apps Script ตอบกลับเป็น HTML\n→ ตรวจ Deploy Settings:\n  • Execute as: Me\n  • Who has access: Anyone  ← ต้องเป็นนี้\n→ แล้ว Deploy ใหม่ (New version)');
+          return;
+        }
+
+        var json = JSON.parse(text);
+        if (json.success && json.data && json.data.status === 'ok') {
+          showOk('✅ เชื่อมต่อสำเร็จ! Apps Script พร้อมใช้งาน\nเวลา server: ' + json.data.time + '\n\n→ กดปุ่ม Login ได้เลยครับ');
         } else {
-          el.style.background = '#fffbeb'; el.style.borderColor = '#fde68a'; el.style.color = '#92400e';
-          el.textContent = '⚠️ Apps Script ตอบกลับแต่ข้อมูลผิดปกติ: ' + text.slice(0,100);
+          showErr('⚠️ ตอบกลับผิดปกติ:\n' + text.slice(0, 200));
         }
       } catch(e) {
-        el.style.background = '#fff5f5'; el.style.borderColor = '#fecaca'; el.style.color = '#991b1b';
-        el.textContent = '❌ เชื่อมต่อไม่ได้: ' + e.message
-          + '\n\n→ ตรวจสอบ: 1) API_BASE_URL ถูกต้อง? 2) Apps Script Deploy แล้ว? 3) "Who has access" = Anyone?';
+        showErr('❌ เชื่อมต่อไม่ได้: ' + e.message + '\n\nตรวจสอบ:\n1. API_BASE_URL ใน config.js ถูกต้อง?\n2. Apps Script ได้ Deploy แล้ว?\n3. Who has access = Anyone?');
       }
+    }
+
+    /* ── Message helpers ─────────────────────── */
+    function showErr(t)  { _msg(t,'#fff5f5','#fecaca','#991b1b'); }
+    function showOk(t)   { _msg(t,'#f0fdf4','#bbf7d0','#065f46'); }
+    function showInfo(t) { _msg(t,'#eff6ff','#bfdbfe','#1e429f'); }
+    function hideMsg()   { document.getElementById('msg').style.display='none'; }
+    function _msg(t,bg,br,cl) {
+      var el=document.getElementById('msg');
+      Object.assign(el.style,{display:'block',background:bg,borderColor:br,border:'1px solid',color:cl,borderRadius:'12px',padding:'13px 16px',fontSize:'13.5px',lineHeight:'1.7',whiteSpace:'pre-wrap',wordBreak:'break-word'});
+      el.textContent=t;
     }
   </script>
 </body>
