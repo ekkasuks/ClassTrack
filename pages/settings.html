@@ -185,8 +185,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="../assets/js/config.js"></script>
-<script src="../assets/js/auth.js"></script>
 <script src="../assets/js/api.js"></script>
+<script src="../assets/js/auth.js"></script>
+
 <script src="../assets/js/ui.js"></script>
 <script>
   const user = Auth.requireRole('ADMIN');
@@ -238,10 +239,10 @@
         ? `<div class="table-responsive"><table class="table table-hover" style="font-size:14px">
             <thead class="table-light"><tr><th>อีเมล</th><th>บทบาท</th><th>สถานะ</th><th></th></tr></thead>
             <tbody>${admins.map(a => `<tr>
-              <td>${escHtml(a.email)}</td>
-              <td><span class="badge bg-primary bg-opacity-10 text-primary" style="border-radius:20px;padding:3px 12px">${escHtml(a.role)}</span></td>
+              <td>${UI.escHtml(a.email)}</td>
+              <td><span class="badge bg-primary bg-opacity-10 text-primary" style="border-radius:20px;padding:3px 12px">${UI.escHtml(a.role)}</span></td>
               <td>${a.active==='TRUE'?'<span style="color:var(--success)">✅</span>':'<span style="color:var(--muted)">⏸</span>'}</td>
-              <td><button class="btn btn-sm btn-outline-danger" onclick="removeAdmin('${escHtml(a.email)}')"><i class="bi bi-trash"></i></button></td>
+              <td><button class="btn btn-sm btn-outline-danger" onclick="removeAdmin('${UI.escHtml(a.email)}')"><i class="bi bi-trash"></i></button></td>
             </tr>`).join('')}</tbody>
           </table></div>`
         : '<div class="empty-state" style="padding:30px"><div class="empty-icon">👤</div><p>ยังไม่มี Admin</p></div>';
@@ -256,8 +257,8 @@
         ? `<div class="table-responsive"><table class="table table-hover" style="font-size:14px">
             <thead class="table-light"><tr><th>รหัส</th><th>ชื่อวิชา</th><th>สถานะ</th></tr></thead>
             <tbody>${subjs.map(s => `<tr>
-              <td style="font-weight:700;color:var(--primary)">${escHtml(s.subject_id)}</td>
-              <td>${escHtml(s.subject_name)}</td>
+              <td style="font-weight:700;color:var(--primary)">${UI.escHtml(s.subject_id)}</td>
+              <td>${UI.escHtml(s.subject_name)}</td>
               <td>${s.active==='TRUE'?'<span style="color:var(--success)">✅</span>':'<span style="color:var(--muted)">⏸</span>'}</td>
             </tr>`).join('')}</tbody>
           </table></div>`
@@ -273,10 +274,10 @@
         ? logs.map(l => `
             <div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
               <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-                <span style="font-weight:600">${escHtml(l.action)}</span>
+                <span style="font-weight:600">${UI.escHtml(l.action)}</span>
                 <span style="color:var(--muted)">${UI.formatDateTime(l.time)}</span>
               </div>
-              <div style="color:var(--muted)">${escHtml(l.user_email)} · ${escHtml(l.detail)}</div>
+              <div style="color:var(--muted)">${UI.escHtml(l.user_email)} · ${UI.escHtml(l.detail)}</div>
             </div>`).join('')
         : '<p class="text-muted text-center py-3">ยังไม่มีประวัติ</p>';
     } catch(e) {}
@@ -300,7 +301,7 @@
   }
 
   async function removeAdmin(email) {
-    const ok = await UI.confirm(`ต้องการลบ <b>${escHtml(email)}</b> ออกจากระบบ?`, 'ลบ');
+    const ok = await UI.confirm(`ต้องการลบ <b>${UI.escHtml(email)}</b> ออกจากระบบ?`, 'ลบ');
     if (!ok) return;
     UI.loading(true);
     try {
@@ -323,12 +324,6 @@
       loadSubjects();
     } catch(e) { UI.toast('เกิดข้อผิดพลาด', 'error'); }
     finally { UI.loading(false); }
-  }
-
-  function escHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 </script>
 </body>

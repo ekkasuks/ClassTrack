@@ -102,7 +102,7 @@ const Api = (() => {
   // ─── Assignment APIs ──────────────────────────────
   const Assignments = {
     create: (data) => post('/assignment/create', data),
-    byDate: (date) => get('/assignment/byDate', { due: date }),
+    byDate: (date) => get('/assignment/bydate', { due: date }),
     detail: (assignId) => get('/assignment/detail', { assign_id: assignId }),
     update: (data) => post('/assignment/update', data),
     remove: (assignId) => post('/assignment/delete', { assign_id: assignId }),
@@ -112,16 +112,16 @@ const Api = (() => {
   // ─── Submission APIs ──────────────────────────────
   const Submissions = {
     list: (assignId) => get('/submission/list', { assign_id: assignId }),
-    updateOne: (data) => post('/submission/updateOne', data),
-    bulkUpdate: (data) => post('/submission/bulkUpdate', data),
+    updateOne: (data) => post('/submission/updateone', data),
+    bulkUpdate: (data) => post('/submission/bulkupdate', data),
   };
 
   // ─── Report APIs ──────────────────────────────────
   const Reports = {
     summary: (params) => get('/report/summary', params),
     student: (params) => get('/report/student', params),
-    exportExcel: (params) => get('/report/exportExcel', params),
-    exportPDF: (params) => get('/report/exportPDF', params),
+    exportExcel: (params) => get('/report/exportexcel', params),
+    exportPDF: (params) => get('/report/exportpdf', params),
   };
 
   // ─── Upload API ───────────────────────────────────

@@ -161,8 +161,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="../assets/js/config.js"></script>
-<script src="../assets/js/auth.js"></script>
 <script src="../assets/js/api.js"></script>
+<script src="../assets/js/auth.js"></script>
+
 <script src="../assets/js/ui.js"></script>
 <script>
   const user = Auth.requireAuth();
@@ -184,7 +185,7 @@
     try {
       const cr = await Api.Classes.list();
       _classes = cr.data || [];
-      const classOpts = _classes.map(c => `<option value="${c.class_id}">${escHtml(c.class_name)}</option>`).join('');
+      const classOpts = _classes.map(c => `<option value="${c.class_id}">${UI.escHtml(c.class_name)}</option>`).join('');
       document.getElementById('sel-class').insertAdjacentHTML('beforeend', classOpts);
       document.getElementById('inp-student-class').innerHTML =
         '<option value="">เลือกชั้น</option>' + classOpts;
@@ -235,8 +236,8 @@
         : '<span class="badge" style="background:#fff5f5;color:#991b1b;border:1px solid #fecaca;border-radius:20px;padding:3px 10px;font-size:12px">❌ Inactive</span>';
       return `<tr>
         <td style="color:var(--muted)">${i+1}</td>
-        <td style="color:var(--muted);font-size:13px">${escHtml(s.student_code||'-')}</td>
-        <td style="font-weight:500">${escHtml(s.prefix)}${escHtml(s.fullname)}</td>
+        <td style="color:var(--muted);font-size:13px">${UI.escHtml(s.student_code||'-')}</td>
+        <td style="font-weight:500">${UI.escHtml(s.prefix)}${UI.escHtml(s.fullname)}</td>
         <td>${statusBadge}</td>
         <td>
           <div class="d-flex gap-1">
@@ -341,7 +342,7 @@
         <div class="table-responsive" style="font-size:12.5px">
           <table class="table table-sm">
             <thead><tr><th>เลขประจำตัว</th><th>ชื่อ</th><th>ชั้น</th></tr></thead>
-            <tbody>${_csvRows.slice(0,5).map(r=>`<tr><td>${escHtml(r.student_code)}</td><td>${escHtml(r.prefix)}${escHtml(r.fullname)}</td><td>${escHtml(r.class_id)}</td></tr>`).join('')}</tbody>
+            <tbody>${_csvRows.slice(0,5).map(r=>`<tr><td>${UI.escHtml(r.student_code)}</td><td>${UI.escHtml(r.prefix)}${UI.escHtml(r.fullname)}</td><td>${UI.escHtml(r.class_id)}</td></tr>`).join('')}</tbody>
           </table>
           ${_csvRows.length>5?`<small class="text-muted">และอีก ${_csvRows.length-5} รายการ...</small>`:''}
         </div>`;
@@ -370,12 +371,6 @@
       if (res.data?.url) window.open(res.data.url, '_blank');
     } catch(e) { UI.toast('Export ไม่สำเร็จ','error'); }
     finally { UI.loading(false); }
-  }
-
-  function escHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 </script>
 </body>

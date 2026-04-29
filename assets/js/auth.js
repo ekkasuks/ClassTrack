@@ -83,7 +83,7 @@ const Auth = (() => {
       google.accounts.oauth2.revoke(_accessToken, () => {});
     }
     sessionStorage.clear();
-    window.location.href = '/index.html';
+    const _d = location.pathname.split('/').filter(Boolean).length; window.location.href = (_d > 1 ? '../'.repeat(_d-1) : './') + 'index.html';
   }
 
   /**

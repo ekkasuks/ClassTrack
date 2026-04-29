@@ -218,5 +218,21 @@ const UI = (() => {
     if (rl) rl.textContent = user.role === 'ADMIN' ? '👑 Admin' : '👨‍🏫 ครู';
   }
 
-  return { toast, loading, confirm, modal, buildTable, statusBadge, formatDate, formatDateTime, renderUserInfo };
+
+  /**
+   * ป้องกัน XSS — escape HTML entities ทุก user-generated string
+   * @param {*} str
+   * @returns {string}
+   */
+  function escHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  return { toast, loading, confirm, modal, buildTable, statusBadge, formatDate, formatDateTime, renderUserInfo, escHtml };
 })();

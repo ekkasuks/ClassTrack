@@ -39,14 +39,16 @@ const SheetService = (() => {
     if (values.length < 2) return [];
 
     const headers = values[0].map(h => String(h).trim());
-    return values.slice(1)
-      .filter(row => row.some(cell => cell !== '' && cell !== null))
-      .map(row => {
-        const obj = {};
-        headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
-        obj.__rowIndex = values.indexOf(row) + 1; // 1-indexed for sheet operations
-        return obj;
-      });
+    const result = [];
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      if (!row.some(cell => cell !== '' && cell !== null)) continue;
+      const obj = {};
+      headers.forEach((h, j) => { obj[h] = row[j] !== undefined ? row[j] : ''; });
+      obj.__rowIndex = i + 1; // 1-indexed, ถูกต้องแม้มี row ซ้ำ
+      result.push(obj);
+    }
+    return result;
   }
 
   /**

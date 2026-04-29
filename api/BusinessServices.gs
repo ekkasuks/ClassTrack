@@ -1,4 +1,19 @@
 /**
+ * ลบ __rowIndex ออกจาก object ก่อนส่งกลับ client
+ * @param {Object|Object[]} data
+ * @returns {Object|Object[]}
+ */
+function _clean(data) {
+  if (Array.isArray(data)) return data.map(_clean);
+  if (data && typeof data === 'object') {
+    const out = Object.assign({}, data);
+    delete out.__rowIndex;
+    return out;
+  }
+  return data;
+}
+
+/**
  * @fileoverview Business Logic Services
  * @description ConfigService, ClassService, SubjectService, StudentService,
  *              AssignmentService, SubmissionService, ReportService

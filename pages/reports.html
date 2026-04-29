@@ -134,8 +134,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="../assets/js/config.js"></script>
-<script src="../assets/js/auth.js"></script>
 <script src="../assets/js/api.js"></script>
+<script src="../assets/js/auth.js"></script>
+
 <script src="../assets/js/ui.js"></script>
 <script>
   const user = Auth.requireAuth();
@@ -160,8 +161,8 @@
   async function initPage() {
     try {
       const [cr, sr] = await Promise.all([Api.Classes.list(), Api.Subjects.list()]);
-      const classOpts = (cr.data||[]).map(c=>`<option value="${c.class_id}">${escHtml(c.class_name)}</option>`).join('');
-      const subOpts   = (sr.data||[]).map(s=>`<option value="${s.subject_id}">${escHtml(s.subject_name)}</option>`).join('');
+      const classOpts = (cr.data||[]).map(c=>`<option value="${c.class_id}">${UI.escHtml(c.class_name)}</option>`).join('');
+      const subOpts   = (sr.data||[]).map(s=>`<option value="${s.subject_id}">${UI.escHtml(s.subject_name)}</option>`).join('');
       document.getElementById('rep-class').insertAdjacentHTML('beforeend',classOpts);
       document.getElementById('rep-subject').insertAdjacentHTML('beforeend',subOpts);
     } catch(e) {}
@@ -217,7 +218,7 @@
                 const pct = r.avg_pct || 0;
                 const color = pct>=80?'var(--success)':pct>=50?'var(--warning)':'var(--danger)';
                 return `<tr>
-                  <td style="font-weight:600">${escHtml(r.class_name)}</td>
+                  <td style="font-weight:600">${UI.escHtml(r.class_name)}</td>
                   <td>${r.total_assignments}</td>
                   <td>${r.complete_assignments}</td>
                   <td>
@@ -248,8 +249,8 @@
                 const color = pct>=80?'var(--success)':pct>=50?'var(--warning)':'var(--danger)';
                 return `<tr>
                   <td style="color:var(--muted)">${i+1}</td>
-                  <td style="font-weight:500">${escHtml(r.fullname)}</td>
-                  <td>${escHtml(r.class_name)}</td>
+                  <td style="font-weight:500">${UI.escHtml(r.fullname)}</td>
+                  <td>${UI.escHtml(r.class_name)}</td>
                   <td style="color:var(--success);font-weight:600">${r.sent||0}</td>
                   <td style="color:var(--danger);font-weight:600">${r.not_sent||0}</td>
                   <td style="color:var(--warning);font-weight:600">${r.late||0}</td>
@@ -279,8 +280,8 @@
             <tbody>
               ${rows.map((r, i) => `<tr>
                 <td style="color:var(--muted)">${i+1}</td>
-                <td style="font-weight:600;color:var(--danger)">${escHtml(r.fullname)}</td>
-                <td>${escHtml(r.class_name)}</td>
+                <td style="font-weight:600;color:var(--danger)">${UI.escHtml(r.fullname)}</td>
+                <td>${UI.escHtml(r.class_name)}</td>
                 <td>
                   <div class="d-flex align-items-center gap-2">
                     <div class="progress-ct" style="width:80px"><div class="progress-ct-bar" style="width:${r.submit_pct}%;background:var(--danger)"></div></div>
@@ -325,12 +326,6 @@
       else UI.toast('ไม่สามารถสร้างไฟล์ได้','error');
     } catch(e) { UI.toast('Export ไม่สำเร็จ','error'); }
     finally { UI.loading(false); }
-  }
-
-  function escHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 </script>
 </body>

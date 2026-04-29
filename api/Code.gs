@@ -5,6 +5,7 @@
  * @version 1.1.0
  */
 
+// ⚠️ ต้องแก้ค่าด้านล่างนี้ก่อน Deploy !
 const GAS_CONFIG = {
   SPREADSHEET_ID:  'YOUR_SPREADSHEET_ID_HERE',
   UPLOAD_FOLDER_ID: 'YOUR_DRIVE_FOLDER_ID_HERE',
