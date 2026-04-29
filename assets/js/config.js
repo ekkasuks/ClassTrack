@@ -8,7 +8,7 @@ const CONFIG = {
   API_BASE_URL: 'https://script.google.com/macros/s/AKfycbxHgpWdxetEdfe06dRlM76YRKFJ3b38FXq_KIAp0PbeKkpLySLaI2Afp7RjPZ03bZRP/exec',
 
   /** @type {string} Google OAuth Client ID จาก Google Cloud Console */
-  GOOGLE_CLIENT_ID: 'x175501609129-q2h9ug1cjbs0ov1um9oa4hdr4pvr4tdb.apps.googleusercontent.com',
+  GOOGLE_CLIENT_ID: '927009801291-kevld3oikvb61borggjd1uul8mbhmkvk.apps.googleusercontent.com',
 
   /** @type {number} Token expiry buffer (ms) */
   TOKEN_EXPIRY_BUFFER: 5 * 60 * 1000,
