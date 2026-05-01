@@ -5,7 +5,7 @@
 
 const CONFIG = {
   /** @type {string} URL ของ Google Apps Script Web App */
-  API_BASE_URL: 'xxhttps://script.google.com/macros/s/AKfycbxUrIpNuMkLE86QDS2-XLCRwmPXrLmpMSOIInl-oQD_XwI0JchWVzF5ZNN1tjDwojpw/exec',
+  API_BASE_URL: 'https://script.google.com/macros/s/AKfycbw4VxbqgS43aDLyTUHdLuJAKDYhJ-6wQ2-nBQjxQI9CdzoRahHhlLcc-meMrmDRRws/exec',
 
   /** @type {string} Google OAuth Client ID จาก Google Cloud Console */
   GOOGLE_CLIENT_ID: '175501609129-q2h9ug1cjbs0ov1um9oa4hdr4pvr4tdb.apps.googleusercontent.com',
