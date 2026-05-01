@@ -45,26 +45,34 @@ const Auth = (() => {
     try {
       // เก็บ token ก่อน เพื่อให้ Api.post() ใช้ Auth.getToken() ได้
       sessionStorage.setItem('ct_token', _accessToken);
+      console.log('[Auth] token saved, calling /auth/verify...');
 
       const result = await Api.post('/auth/verify', { token: _accessToken });
+      console.log('[Auth] /auth/verify response:', result);
 
       if (result && result.success) {
         _user = result.data;
         sessionStorage.setItem('ct_user', JSON.stringify(_user));
-        // Redirect ไป pages/ ซึ่งอยู่ใน subfolder เดียวกับ index.html
+        console.log('[Auth] login success, user:', _user);
         window.location.href = 'pages/dashboard.html';
       } else {
-        // ล้าง token ออกถ้าไม่มีสิทธิ์
         sessionStorage.removeItem('ct_token');
-        _showError((result && result.message) || 'ไม่มีสิทธิ์เข้าใช้งาน กรุณาติดต่อผู้ดูแลระบบ');
+        // แสดง error จาก server ตรงๆ เพื่อ debug ง่าย
+        const errMsg = (result && result.message) || 'ไม่มีสิทธิ์เข้าใช้งาน';
+        console.error('[Auth] server rejected:', errMsg);
+        _showError(errMsg + '\n\nถ้าเพิ่ง login ครั้งแรก → ตรวจว่า email ของคุณอยู่ใน Sheet ADMINS แล้ว');
       }
     } catch (e) {
       sessionStorage.removeItem('ct_token');
-      console.error('Auth error:', e);
-      // แยกข้อความ error ให้ชัดเจน
-      const msg = e.message.includes('non-JSON')
-        ? 'Apps Script URL ไม่ถูกต้อง หรือยังไม่ได้ Deploy — กรุณาตรวจ config.js'
-        : 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (ตรวจ Console สำหรับรายละเอียด)';
+      console.error('[Auth] exception:', e);
+      let msg = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้\n';
+      if (e.message.includes('non-JSON')) {
+        msg += '→ Apps Script ยังไม่ได้ Deploy หรือ URL ใน config.js ผิด';
+      } else if (e.message.includes('Failed to fetch')) {
+        msg += '→ ตรวจ API_BASE_URL ใน config.js';
+      } else {
+        msg += '→ ' + e.message + '\n(เปิด Console กด ⌘+⌥+J เพื่อดูรายละเอียด)';
+      }
       _showError(msg);
     } finally {
       _showLoading(false);
@@ -140,9 +148,22 @@ const Auth = (() => {
   }
 
   function _showError(msg) {
-    const el = document.getElementById('error-msg');
-    if (el) { el.textContent = msg; el.style.display = 'block'; }
-    else alert(msg);
+    // รองรับทั้ง id='error-msg' (pages) และ id='msg' (index.html)
+    const el = document.getElementById('error-msg') || document.getElementById('msg');
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
+      el.style.background = '#fff5f5';
+      el.style.border = '1px solid #fecaca';
+      el.style.color = '#991b1b';
+      el.style.borderRadius = '12px';
+      el.style.padding = '13px 16px';
+      el.style.fontSize = '13.5px';
+      el.style.lineHeight = '1.7';
+      el.style.whiteSpace = 'pre-wrap';
+    } else {
+      alert(msg);
+    }
   }
 
   return { init, login, logout, getToken, getUser, requireAuth, requireRole };

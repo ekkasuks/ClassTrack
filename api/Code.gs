@@ -78,6 +78,9 @@ function doGet(e) {
 
   } catch (err) {
     Logger.log('[doGet] ' + err.message + '\n' + err.stack);
+    if (err.message.indexOf('ไม่มีสิทธิ์') !== -1 || err.message.indexOf('Unauthorized') !== -1) {
+      return _err(err.message, 401);
+    }
     return _err('Server Error: ' + err.message, 500);
   }
 }
@@ -129,6 +132,10 @@ function doPost(e) {
 
   } catch (err) {
     Logger.log('[doPost] ' + err.message + '\n' + err.stack);
+    // Auth error → 401 ไม่ใช่ 500
+    if (err.message.indexOf('ไม่มีสิทธิ์') !== -1 || err.message.indexOf('Unauthorized') !== -1) {
+      return _err(err.message, 401);
+    }
     return _err('Server Error: ' + err.message, 500);
   }
 }

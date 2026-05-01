@@ -58,9 +58,17 @@ const SheetService = (() => {
    * @param {string} keyVal
    * @returns {Object|null}
    */
+  /**
+   * หา row แรกที่ตรงกับ condition (case-insensitive + trim สำหรับ string)
+   * @param {string} sheetName
+   * @param {string} keyCol
+   * @param {string} keyVal
+   * @returns {Object|null}
+   */
   function findOne(sheetName, keyCol, keyVal) {
-    const rows = getAll(sheetName);
-    return rows.find(r => String(r[keyCol]) === String(keyVal)) || null;
+    const rows    = getAll(sheetName);
+    const normVal = String(keyVal).toLowerCase().trim();
+    return rows.find(r => String(r[keyCol]).toLowerCase().trim() === normVal) || null;
   }
 
   /**

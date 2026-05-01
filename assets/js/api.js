@@ -19,7 +19,7 @@ const Api = (() => {
    */
   async function post(endpoint, body) {
     const token  = Auth.getToken();
-    const action = endpoint.replace(/^\//, '').replace(/\//g, '_');
+    const action = endpoint.replace(/^\//, '').replace(/\//g, '_').toLowerCase();
     const url    = `${CONFIG.API_BASE_URL}?action=${action}`;
 
     // รวม token เข้าใน body เสมอ (เพราะ custom header ไม่ผ่าน CORS)
@@ -55,7 +55,7 @@ const Api = (() => {
    */
   async function get(endpoint, params = {}) {
     const token  = Auth.getToken();
-    const action = endpoint.replace(/^\//, '').replace(/\//g, '_');
+    const action = endpoint.replace(/^\//, '').replace(/\//g, '_').toLowerCase();
     const qs     = new URLSearchParams({
       action,
       ...(token ? { token } : {}),
