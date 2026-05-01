@@ -18,11 +18,13 @@ const Api = (() => {
    * @returns {Promise<Object>}
    */
   async function post(endpoint, body) {
-    const token  = Auth.getToken();
+    // getValidToken() จะ refresh อัตโนมัติถ้าหมดอายุ
+    const token  = await Auth.getValidToken();
+    if (!token) return { success:false, message:'SESSION_EXPIRED', data:null };
+
     const action = endpoint.replace(/^\//, '').replace(/\//g, '_').toLowerCase();
     const url    = `${CONFIG.API_BASE_URL}?action=${action}`;
 
-    // รวม token เข้าใน body เสมอ (เพราะ custom header ไม่ผ่าน CORS)
     const payload = { ...body, token };
 
     try {
@@ -54,11 +56,13 @@ const Api = (() => {
    * @returns {Promise<Object>}
    */
   async function get(endpoint, params = {}) {
-    const token  = Auth.getToken();
+    const token  = await Auth.getValidToken();
+    if (!token) return { success:false, message:'SESSION_EXPIRED', data:null };
+
     const action = endpoint.replace(/^\//, '').replace(/\//g, '_').toLowerCase();
     const qs     = new URLSearchParams({
       action,
-      ...(token ? { token } : {}),
+      token,
       ...params,
     }).toString();
     const url = `${CONFIG.API_BASE_URL}?${qs}`;
