@@ -18,14 +18,23 @@ const Api = (() => {
    * @returns {Promise<Object>}
    */
   async function post(endpoint, body) {
-    // getValidToken() จะ refresh อัตโนมัติถ้าหมดอายุ
-    const token  = await Auth.getValidToken();
-    if (!token) return { success:false, message:'SESSION_EXPIRED', data:null };
-
     const action = endpoint.replace(/^\//, '').replace(/\//g, '_').toLowerCase();
     const url    = `${CONFIG.API_BASE_URL}?action=${action}`;
+    const user   = Auth.getUser();
 
-    const payload = { ...body, token };
+    // auth_verify ส่ง token จริง, อื่นๆ ส่ง email จาก session
+    let payload;
+    if (action === 'auth_verify') {
+      const token = await Auth.getValidToken();
+      payload = { ...body, token };
+    } else {
+      payload = {
+        ...body,
+        user_email: user ? user.email : '',
+        user_name:  user ? user.name  : '',
+        user_role:  user ? user.role  : '',
+      };
+    }
 
     try {
       const res = await fetch(url, {
@@ -56,13 +65,12 @@ const Api = (() => {
    * @returns {Promise<Object>}
    */
   async function get(endpoint, params = {}) {
-    const token  = await Auth.getValidToken();
-    if (!token) return { success:false, message:'SESSION_EXPIRED', data:null };
-
+    const user   = Auth.getUser();
     const action = endpoint.replace(/^\//, '').replace(/\//g, '_').toLowerCase();
     const qs     = new URLSearchParams({
       action,
-      token,
+      user_email: user ? user.email : '',
+      user_role:  user ? user.role  : '',
       ...params,
     }).toString();
     const url = `${CONFIG.API_BASE_URL}?${qs}`;
