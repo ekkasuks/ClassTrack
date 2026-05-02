@@ -99,12 +99,18 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="../assets/js/config.js"></script>
 <script src="../assets/js/api.js"></script>
+<script src="../assets/js/ui.js"></script>
 <script src="../assets/js/auth.js"></script>
 
-<script src="../assets/js/ui.js"></script>
 <script>
   const user = Auth.requireRole('ADMIN');
   if (user) {
+    UI.renderUserInfo();
+    const av = document.getElementById('user-avatar');
+    if (av && user.name) av.textContent = user.name.charAt(0);
+    document.querySelector('[data-page="classes"]').classList.add('active');
+    const user = Auth.requireAuth();
+    if (!user) return;
     UI.renderUserInfo();
     const av = document.getElementById('user-avatar');
     if (av && user.name) av.textContent = user.name.charAt(0);
