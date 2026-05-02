@@ -19,6 +19,17 @@ function _clean(data) {
  *              AssignmentService, SubmissionService, ReportService
  */
 
+
+/**
+ * ล้าง cache ทั้งหมด — เรียกหลังมีการแก้ไขข้อมูลใดๆ
+ */
+function _clearAllCache() {
+  const cache = CacheService.getScriptCache();
+  cache.remove('classes_all');
+  cache.remove('subjects_all');
+  Logger.log('[Cache] all cache cleared');
+}
+
 // ══════════════════════════════════════════════════════════
 // CONFIG SERVICE
 // ══════════════════════════════════════════════════════════
@@ -40,6 +51,7 @@ const ConfigService = (() => {
       const updated = SheetService.updateRow('CONFIG', 'key', key, { value: SheetService.sanitize(value) });
       if (!updated) SheetService.insertRow('CONFIG', { key, value: SheetService.sanitize(value) });
     });
+    _clearAllCache();
     AuditService.log(userEmail, 'CONFIG_UPDATE', 'CONFIG', JSON.stringify(updates));
     return { updated: true };
   }
@@ -59,7 +71,7 @@ const ClassService = (() => {
     if (cached) return JSON.parse(cached);
 
     const rows = SheetService.getAll('CLASSES').filter(c => c.active === 'TRUE');
-    cache.put(cacheKey, JSON.stringify(rows), GAS_CONFIG.CACHE_TTL);
+    cache.put(cacheKey, JSON.stringify(rows), 60); // 60 วินาที
     return rows;
   }
 
@@ -107,7 +119,7 @@ const SubjectService = (() => {
     const cached = cache.get('subjects_all');
     if (cached) return JSON.parse(cached);
     const rows = SheetService.getAll('SUBJECTS').filter(s => s.active === 'TRUE');
-    cache.put('subjects_all', JSON.stringify(rows), GAS_CONFIG.CACHE_TTL);
+    cache.put('subjects_all', JSON.stringify(rows), 60); // 60 วินาที
     return rows;
   }
 
@@ -152,6 +164,7 @@ const StudentService = (() => {
       status:       data.status || 'ACTIVE',
     };
     SheetService.insertRow('STUDENTS', row);
+    _clearAllCache();
     AuditService.log(userEmail, 'STUDENT_ADD', studentId, data.fullname);
     return row;
   }
@@ -166,6 +179,7 @@ const StudentService = (() => {
       status:       data.status || 'ACTIVE',
     };
     SheetService.updateRow('STUDENTS', 'student_id', data.student_id, updates);
+    _clearAllCache();
     AuditService.log(userEmail, 'STUDENT_UPDATE', data.student_id, data.fullname);
     return { student_id: data.student_id };
   }

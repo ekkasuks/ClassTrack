@@ -68,9 +68,10 @@ function doGet(e) {
       return _ok({ status:'ok', time:new Date().toISOString(), version:'1.3' });
     }
 
-    // GET ทุก request ตรวจ session email
+    // ตรวจแค่ว่ามี user_email ส่งมา (login แล้ว)
+    // ไม่ต้อง validate กับ Sheet ทุกครั้ง — ทำให้ GET เร็วขึ้นมาก
     const email = (p.user_email || '').toLowerCase().trim();
-    _validateSession(email, '');
+    if (!email) return _err('Unauthorized: no session', 401);
 
     const routes = {
       'config':             () => _ok(ConfigService.getAll()),
